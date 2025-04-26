@@ -1,0 +1,69 @@
+#faq-section {
+  gap: 2rem;
+  width: 60%;
+  display: flex;
+  padding: 3rem 1.5rem;
+  flex-direction: column;
+  align-items: center;
+}
+
+.content div {
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+#accordion li {
+  border-top: 1px solid #ffffff4d;
+  list-style: none;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#accordion li label {
+  color: #b2b2b2;
+  font-size: 16px;
+  padding: 1.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+#accordion li label span {
+  transform: rotate(90deg);
+  font-weight: 700;
+  font-size: 17px;
+  color: #b2b2b2;
+}
+
+#accordion label+input[type="checkbox"] {
+  display: none;
+}
+
+#accordion .content {
+  max-height: 0;
+  padding: 0 1rem;
+  color: #b2b2b2;
+  font-size: 0.875rem;
+  overflow: hidden;
+  line-height: 26px;
+  transition: max-height 0.5s;
+}
+
+#accordion label+input[type="checkbox"]:checked+.content {
+  max-height: 1000px;
+}
+
+
+@media screen and (min-width: 320px) and (max-width: 480px) {
+  #faq-section {
+    width: 80%;
+  }
+
+  #accordion label+input[type="checkbox"]:checked+.content {
+    max-height: 1000px;
+  }
+}

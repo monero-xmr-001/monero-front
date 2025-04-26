@@ -1,0 +1,27 @@
+#why-section {
+  gap: 2rem;
+  display: flex-start;
+  align-items: center;
+  padding: 3rem 12rem;
+  flex-direction: column;
+}
+
+@media screen and (min-width: 320px) and (max-width: 480px) {
+  #why-section {
+    padding: 3rem 0.25rem;
+  }
+}
+
+.why-section-content {
+  display: flex;
+  padding: 0.5rem 0;
+  flex-direction: column;
+}
+
+#why-section-content-container {
+  width: 75%;
+  gap: 2rem;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
