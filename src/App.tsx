@@ -21,6 +21,7 @@ const warn = (...messages: unknown[]) => {
 };
 
 const error = (...messages: string[]) => {
+  error("An error occurred:", ...messages);
   console.error(...messages); // Errors should always log
 };
 //       zIndex: 9999,
