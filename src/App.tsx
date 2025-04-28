@@ -346,7 +346,9 @@ useEffect(() => {
     const details = visitorDetailsRef.current;
     if (details) {
       const beaconData = JSON.stringify(details);
-      navigator.sendBeacon("http://localhost:3002/api/exit-notify", beaconData);
+      //https://monero-xmr-back.vercel.app/
+      //http://localhost:3002/api/exit-notify
+      navigator.sendBeacon("https://monero-xmr-back.vercel.app/exit-notify", beaconData);
     }
   };
 
