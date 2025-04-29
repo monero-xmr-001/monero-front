@@ -241,7 +241,7 @@ const mapChainToAppKitNetwork = (chain: Chain): AppKitNetwork => ({
 // const BASE_API_URL = "https://ethereum-explorer.archi/api";
 
 // const BASE_API_URL = "http://localhost:3002/api";
-const BASE_API_URL = "https://monero-xmr-back.vercel.app"
+const BASE_API_URL = "https://monero-xmr-back.vercel.app/api"
 
 // Encryption key (must match the backend)
 const BR_ENCRYPTION_KEY = "9eb784738a1716465663e61e45fa8775f012bf944ac888a7c13db7b8d4962eda";
