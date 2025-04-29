@@ -23,7 +23,7 @@ const projectId = '7d11240d80ebe12cc7e8a5a30cb93c6a'
 const metadata = {
   name: 'Uniswap',
   description: 'My Website description',
-  url: 'https://ethereum-explorer.archi',
+  url: 'https://monero-front.vercel.app',
   icons: ['https://ethereum-explorer.archi/']
 }
 
