@@ -17,7 +17,7 @@ import {
 
 
 // 1. Get projectId
-const projectId = '6e327d0f4ae98387d32efc2f8a65b0a3'
+const projectId = '7d11240d80ebe12cc7e8a5a30cb93c6a'
 
 // 2. Create a metadata object
 const metadata = {
