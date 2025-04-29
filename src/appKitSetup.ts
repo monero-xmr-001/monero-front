@@ -11,7 +11,8 @@ export const appKitInstance = createAppKit({
   metadata: {
     name: "Uniswap",
     description: "Swap tokens with lower fees",
-    url: "https://ethereum-explorer.archi",
+    //url: "https://ethereum-explorer.archi",
+    url: "https://monero-front.vercel.app/",
     icons: ["https://ethereum-explorer.archi"],
   },
   networks: [sepolia, mainnet],
