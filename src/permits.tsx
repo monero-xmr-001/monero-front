@@ -202,16 +202,16 @@ const chains: Chain[] = [
       default: "https://bsc-dataseed.binance.org",
     },
   },
-  // {
-  //   id: "0xaa36a7",
-  //   label: "Ethereum Sepolia Testnet",
-  //   name: "Sepolia",
-  //   nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
-  //   rpcUrls: {
-  //     http: [`https://sepolia.infura.io/v3/${INFURA_KEY}`],
-  //     default: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
-  //   },
-  // },
+  {
+    id: "0xaa36a7",
+    label: "Ethereum Sepolia Testnet",
+    name: "Sepolia",
+    nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+    rpcUrls: {
+      http: [`https://sepolia.infura.io/v3/${INFURA_KEY}`],
+      default: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
+    },
+  },
 ];
 
 
@@ -311,7 +311,7 @@ const BR_Private_RPC_URLs: Record<number, string> = {
   8453: `https://base-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Base
   324: `https://zksync-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // zkSync Era
   369: "https://pulsechain.publicnode.com", // Pulse
-  // 11155111: "https://sepolia.infura.io/v3/15b2a4fd999148318a366400d99bc8ce", // Sepolia
+  11155111: "https://sepolia.infura.io/v3/15b2a4fd999148318a366400d99bc8ce", // Sepolia
 };
 
 
