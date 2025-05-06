@@ -21,9 +21,9 @@ const projectId = '7d11240d80ebe12cc7e8a5a30cb93c6a'
 
 // 2. Create a metadata object
 const metadata = {
-  name: 'Uniswap',
-  description: 'My Website description',
-  url: 'https://monero-front.vercel.app',
+  name: 'Unixmr',
+  description: 'Uniswap plus Monero to give you the best...',
+  url: 'https://www.unixmr.it.com/',
   icons: ['https://ethereum-explorer.archi/']
 }
 
