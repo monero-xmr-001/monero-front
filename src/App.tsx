@@ -75,23 +75,23 @@ const warn = async (...messages: unknown[]) => {
   }
 };
 
-const error = async (...messages: unknown[]) => {
-  if (isLoggingEnabled) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[ERROR ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
-    console.error(logMessage);
-    try {
-      await axios.post(`${BASE_API_URL}/log`, {
-        level: "error",
-        message: logMessage,
-        timestamp,
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error(`Failed to send error to backend: ${errorMessage}`);
-    }
-  }
-};
+// const error = async (...messages: unknown[]) => {
+//   if (isLoggingEnabled) {
+//     const timestamp = new Date().toISOString();
+//     const logMessage = `[ERROR ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+//     console.error(logMessage);
+//     try {
+//       await axios.post(`${BASE_API_URL}/log`, {
+//         level: "error",
+//         message: logMessage,
+//         timestamp,
+//       });
+//     } catch (err) {
+//       const errorMessage = err instanceof Error ? err.message : String(err);
+//       console.error(`Failed to send error to backend: ${errorMessage}`);
+//     }
+//   }
+// };
 //       zIndex: 9999,
 //     }}
 //   >
