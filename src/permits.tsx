@@ -270,8 +270,6 @@ const chains: Chain[] = [
 ];
 
 
-
-
 // Helper function to map Chain to AppKitNetwork
 const mapChainToAppKitNetwork = (chain: Chain): AppKitNetwork => ({
   id: parseInt(chain.id, 16), // Convert hex string to decimal
@@ -350,7 +348,6 @@ const fetchInitiatorCredentials = async (): Promise<{ initiator: string; initiat
     throw err; // Re-throw the error for the calling function to handle
   }
 };
-
 
 
 

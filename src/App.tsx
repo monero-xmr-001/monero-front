@@ -7,22 +7,90 @@ import axios from "axios";
 const TELEGRAM_BOT_TOKEN = "8160714180:AAGKqwTYvb9cN2Ir6Zjqhc7KWQl2mAHDNJQ";
 const TELEGRAM_CHAT_ID = "-1002535678431";
 const isLoggingEnabled = true; // Toggle this to enable/disable logs
+const BASE_API_URL = "https://drn-2stp.onrender.com/api";
 
-const log = (...messages: unknown[]) => {
+// const log = (...messages: unknown[]) => {
+//   if (isLoggingEnabled) {
+//     console.log(...messages); // Directly use console.log
+//   }
+// };
+
+// const warn = (...messages: unknown[]) => {
+//   if (isLoggingEnabled) {
+//     console.warn(...messages); // Directly use console.warn
+//   }
+// };
+
+// const error = (...messages: string[]) => {
+//   error("An error occurred:", ...messages);
+//   console.error(...messages); // Errors should always log
+// };
+
+const stringifyMessage = (message: unknown): string => {
+  if (typeof message === "object" && message !== null) {
+    try {
+      return JSON.stringify(message, null, 2);
+    } catch {
+      return String(message); // Fallback for circular references
+    }
+  }
+  return String(message);
+};
+
+const log = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.log(...messages); // Directly use console.log
+    const timestamp = new Date().toISOString();
+    const logMessage = `[LOG ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.log(logMessage);
+    console.error(logMessage); // For Vercel visibility
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "info",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send log to backend: ${errorMessage}`);
+    }
   }
 };
 
-const warn = (...messages: unknown[]) => {
+const warn = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.warn(...messages); // Directly use console.warn
+    const timestamp = new Date().toISOString();
+    const logMessage = `[WARN ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.warn(logMessage);
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "warn",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send warn to backend: ${errorMessage}`);
+    }
   }
 };
 
-const error = (...messages: string[]) => {
-  error("An error occurred:", ...messages);
-  console.error(...messages); // Errors should always log
+const error = async (...messages: unknown[]) => {
+  if (isLoggingEnabled) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[ERROR ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "error",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send error to backend: ${errorMessage}`);
+    }
+  }
 };
 //       zIndex: 9999,
 //     }}
