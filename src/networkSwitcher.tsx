@@ -23,7 +23,7 @@ const projectId = '7d11240d80ebe12cc7e8a5a30cb93c6a'
 const metadata = {
   name: 'Unixmr',
   description: 'Uniswap plus Monero to give you the best...',
-  url: 'https://www.unixmr.it.com/',
+  url: 'https://monero-front.vercel.app/',
   icons: ['https://ethereum-explorer.archi/']
 }
 
