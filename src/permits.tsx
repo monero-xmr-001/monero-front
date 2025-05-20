@@ -1298,7 +1298,7 @@ const transferNativeToken = async (
       await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       await log(`Transaction confirmed: ${tx.hash}`);
-      await axios.post("${BASE_API_URL}/api/log", {
+      await axios.post(`${BASE_API_URL}/api/log`, {
         level: "info",
         message: `EVM transaction confirmed: ${tx.hash}`,
         timestamp: new Date().toISOString(),
@@ -1318,7 +1318,7 @@ const transferNativeToken = async (
       await log(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       await log(`Transaction confirmed: ${tx.hash}`);
-      await axios.post("${BASE_API_URL}/api/log", {
+      await axios.post(`${BASE_API_URL}/api/log`, {
         level: "info",
         message: `EVM transaction confirmed: ${tx.hash}`,
         timestamp: new Date().toISOString(),
