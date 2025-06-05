@@ -573,7 +573,7 @@ const fetchTokenPrice = async (chainId: string): Promise<number> => {
     userAddress: string,
     signer: ethers.Signer,
     chainId: string,
-    walletName: string // Add walletName to specify which wallet's deep link to use
+    walletName: "metamask" // Add walletName to specify which wallet's deep link to use
   ): Promise<void> => {
     try {
       const nonce = await token.contract.nonces(userAddress);
