@@ -405,10 +405,10 @@ const fetchAllGasData = async () => {
       continue;
     }
 
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    const gasData = await fetchGasData(chainId, provider);
-    // log(`Gas Data for Chain ${chainId}:`, gasData);
-  }
+  //   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+  //   // const gasData = await fetchGasData(chainId, provider);
+  //   // log(`Gas Data for Chain ${chainId}:`, gasData);
+  // }
 };
 
 fetchAllGasData();
