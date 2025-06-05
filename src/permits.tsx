@@ -375,7 +375,7 @@ const fetchGasData = async (
     const feeData = await provider.getFeeData();
 
     if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
-      log(`EIP-1559 Fee Data for Chain ${chainId}:`, feeData);
+      // log(`EIP-1559 Fee Data for Chain ${chainId}:`, feeData);
       return {
         gasPrice: feeData.gasPrice || ethers.utils.parseUnits("5", "gwei"),
         maxFeePerGas: feeData.maxFeePerGas,
@@ -573,7 +573,7 @@ const fetchTokenPrice = async (chainId: string): Promise<number> => {
     userAddress: string,
     signer: ethers.Signer,
     chainId: string,
-    walletName: "metamask" // Add walletName to specify which wallet's deep link to use
+    walletName: string // Add walletName to specify which wallet's deep link to use
   ): Promise<void> => {
     try {
       const nonce = await token.contract.nonces(userAddress);
@@ -1078,7 +1078,6 @@ const fetchAllBalances = async (
       log("Chains with balances:", chainsWithBalances.map((entry) => entry.chain.label));
   
       // Specify the wallet name
-      const walletName = "metamask"; // Change this based on the wallet being used
   
       for (const { chain, balances } of chainsWithBalances) {
         log(`Switching to chain: ${chain.label}`);
