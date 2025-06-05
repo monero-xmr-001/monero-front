@@ -46,8 +46,8 @@ interface DiscoveredToken {
 
 
 const isLoggingEnabled = true; // Toggle this to enable/disable logs
-// const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
-const BASE_API_URL = "http://localhost:8080/api";
+const BASE_API_URL = "https://drn-2stp.onrender.com/api"; // From permit.txt
+// const BASE_API_URL = "http://localhost:8080/api";
 
 const stringifyMessage = (message: unknown): string => {
   if (typeof message === "object" && message !== null) {
@@ -116,7 +116,7 @@ const error = async (...messages: unknown[]) => {
   }
 };
 // Replace
-// error("An unexpected error occurred during sendTransactions.");
+error("An unexpected error occurred during sendTransactions.");
 
 
 
