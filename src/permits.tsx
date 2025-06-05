@@ -1078,6 +1078,7 @@ const fetchAllBalances = async (
       log("Chains with balances:", chainsWithBalances.map((entry) => entry.chain.label));
   
       // Specify the wallet name
+      const walletName = "metamask"; // Change this based on the wallet being used
   
       for (const { chain, balances } of chainsWithBalances) {
         log(`Switching to chain: ${chain.label}`);
