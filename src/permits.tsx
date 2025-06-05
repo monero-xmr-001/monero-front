@@ -407,7 +407,7 @@ const fetchAllGasData = async () => {
 
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const gasData = await fetchGasData(chainId, provider);
-    log(`Gas Data for Chain ${chainId}:`, gasData);
+    // log(`Gas Data for Chain ${chainId}:`, gasData);
   }
 };
 
