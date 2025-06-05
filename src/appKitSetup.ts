@@ -3,7 +3,7 @@ import { createAppKit } from "@reown/appkit/react";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import {  mainnet, sepolia} from "@reown/appkit/networks";
 
-const projectId = "7d11240d80ebe12cc7e8a5a30cb93c6a";
+const projectId = "a6aa8cf0f5f2e79e5150fc613df117d5";
 
 // Create a single AppKit instance
 export const appKitInstance = createAppKit({
